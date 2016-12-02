@@ -30,6 +30,10 @@ config TARGET_GURNARD
 	select DM_SERIAL
 	select DM_GPIO
 	select DM_ETH
+	
+config TARGET_AT91SAM9G20ISIS
+	bool "Kubos at91sam9g20isis board"
+	select CPU_ARM926EJS
 
 config TARGET_AT91SAM9261EK
 	bool "Atmel at91sam9261 reference board"
@@ -175,6 +179,7 @@ source "board/calao/usb_a9263/Kconfig"
 source "board/denx/ma5d4evk/Kconfig"
 source "board/egnite/ethernut5/Kconfig"
 source "board/esd/meesc/Kconfig"
+source "board/kubos/at91sam9g20isis/Kconfig"
 source "board/l+g/vinco/Kconfig"
 source "board/mini-box/picosam9g45/Kconfig"
 source "board/ronetix/pm9261/Kconfig"

@@ -378,6 +378,8 @@ struct mmc_ops {
 	int (*init)(struct mmc *mmc);
 	int (*getcd)(struct mmc *mmc);
 	int (*getwp)(struct mmc *mmc);
+	int (*send_spcmd)(struct mmc *mmc,
+			struct mmc_cmd *cmd, struct mmc_data *data);
 };
 #endif
 
@@ -573,6 +575,7 @@ void mmc_set_preinit(struct mmc *mmc, int preinit);
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 
 void board_mmc_power_init(void);
+void board_isis_mmc_power_init(struct mmc *mmc);
 int board_mmc_init(bd_t *bis);
 int cpu_mmc_init(bd_t *bis);
 int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr);

@@ -230,7 +230,7 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (ret != -EBUSY)
 		gpio_free(gpio);
 
-	return value;
+	return ret;
 }
 
 U_BOOT_CMD(gpio, 4, 0, do_gpio,

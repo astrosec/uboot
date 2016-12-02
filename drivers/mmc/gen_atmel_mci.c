@@ -57,6 +57,59 @@ static void dump_cmd(u32 cmdr, u32 arg, u32 status, const char* msg)
 	      cmdr, cmdr & 0x3F, arg, status, msg);
 }
 
+static void mci_set_data_timeout(struct mmc *mmc)
+{
+	atmel_mci_t *mci = (atmel_mci_t *)mmc->priv;
+
+	static const unsigned int dtomul_to_shift[] = {
+		0, 4, 7, 8, 10, 12, 16, 20,
+	};
+
+	unsigned int timeout_ns, timeout_clks;
+	unsigned int dtocyc, dtomul;
+	unsigned int shift;
+	u32 dtor;
+
+	/* we assume 1.5 ms data-read-access-time-1 (taac -> see CSD spec)
+	 * and 0 clock data-read-access-time-2 (nsac -> see CSD spec)
+	 */
+	//timeout_ns = 1500000;
+	timeout_ns = 5000000;
+	timeout_clks = 0;
+
+	debug("gen_atmel_mci: timeout_ns = %u\n", timeout_ns);
+
+	timeout_clks += (((timeout_ns + 9) / 10)
+			 * ((mmc->clock + 99999) / 100000) + 9999) / 10000;
+	if (!IS_SD(mmc))
+		timeout_clks *= 10;
+	else
+		timeout_clks *= 100;
+	debug("gen_atmel_mci: timeout_clks = %u\n", timeout_clks);
+
+	dtocyc = timeout_clks;
+	dtomul = 0;
+	shift = 0;
+	while (dtocyc > 15 && dtomul < 8) {
+		dtomul++;
+		shift = dtomul_to_shift[dtomul];
+		dtocyc = (timeout_clks + (1 << shift) - 1) >> shift;
+	}
+
+	if (dtomul >= 8) {
+		dtomul = 7;
+		dtocyc = 15;
+		puts("Warning: Using maximum data timeout\n");
+	}
+
+	dtor = (MMCI_BF(DTOMUL, dtomul)
+		| MMCI_BF(DTOCYC, dtocyc));
+	writel(dtor, &mci->dtor);
+
+	debug("mci: Using %u cycles data timeout (DTOR=0x%x)\n",
+	       dtocyc << shift, dtor);
+}
+
 /* Setup for MCI Clock and Block Size */
 static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 {
@@ -70,6 +123,9 @@ static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 
 	debug("mci: bus_hz is %u, setting clock %u Hz, block size %u\n",
 		bus_hz, hz, blklen);
+
+	//mci_set_data_timeout(mmc);
+
 	if (hz > 0) {
 		if (version >= 0x500) {
 			clkdiv = DIV_ROUND_UP(bus_hz, hz) - 2;
@@ -211,6 +267,9 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	u32 error_flags = 0;
 	u32 status;
 
+
+	debug("mci_send_cmd\r\n");
+
 	if (!priv->initialized) {
 		puts ("MCI not initialized!\n");
 		return -ECOMM;
@@ -224,6 +283,150 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 			|| (cmd->cmdidx == MMC_CMD_WRITE_MULTIPLE_BLOCK))
 		writel(data->blocks | MMCI_BF(BLKLEN, mmc->read_bl_len),
 			&mci->blkr);
+
+	/* Send the command */
+	writel(cmd->cmdarg, &mci->argr);
+	writel(cmdr, &mci->cmdr);
+
+#ifdef DEBUG
+	dump_cmd(cmdr, cmd->cmdarg, 0, "DEBUG");
+#endif
+
+	/* Wait for the command to complete */
+	while (!((status = readl(&mci->sr)) & MMCI_BIT(CMDRDY)));
+
+	if ((status & error_flags) & MMCI_BIT(RTOE)) {
+		dump_cmd(cmdr, cmd->cmdarg, status, "Command Time Out");
+		return -ETIMEDOUT;
+	} else if (status & error_flags) {
+		dump_cmd(cmdr, cmd->cmdarg, status, "Command Failed");
+		return -ECOMM;
+	}
+
+	/* Copy the response to the response buffer */
+	if (cmd->resp_type & MMC_RSP_136) {
+		cmd->response[0] = readl(&mci->rspr);
+		cmd->response[1] = readl(&mci->rspr1);
+		cmd->response[2] = readl(&mci->rspr2);
+		cmd->response[3] = readl(&mci->rspr3);
+	} else
+		cmd->response[0] = readl(&mci->rspr);
+
+	/* transfer all of the blocks */
+	if (data) {
+		u32 word_count, block_count;
+		u32* ioptr;
+		u32 sys_blocksize, dummy, i;
+		u32 (*mci_data_op)
+			(atmel_mci_t *mci, u32* data, u32 error_flags);
+
+		if (data->flags & MMC_DATA_READ) {
+			mci_data_op = mci_data_read;
+			sys_blocksize = mmc->read_bl_len;
+			ioptr = (u32*)data->dest;
+		} else {
+			mci_data_op = mci_data_write;
+			sys_blocksize = mmc->write_bl_len;
+			ioptr = (u32*)data->src;
+		}
+
+		status = 0;
+		for (block_count = 0;
+				block_count < data->blocks && !status;
+				block_count++) {
+			word_count = 0;
+			do {
+				status = mci_data_op(mci, ioptr, error_flags);
+				word_count++;
+				ioptr++;
+			} while (!status && word_count < (data->blocksize/4));
+#ifdef DEBUG
+			if (data->flags & MMC_DATA_READ)
+			{
+				u32 cnt = word_count * 4;
+				printf("Read Data:\n");
+				print_buffer(0, data->dest + cnt * block_count,
+					     1, cnt, 0);
+			}
+#endif
+#ifdef DEBUG
+			if (!status && word_count < (sys_blocksize / 4))
+				printf("filling rest of block...\n");
+#endif
+			/* fill the rest of a full block */
+			while (!status && word_count < (sys_blocksize / 4)) {
+				status = mci_data_op(mci, &dummy,
+					error_flags);
+				word_count++;
+			}
+			if (status) {
+				dump_cmd(cmdr, cmd->cmdarg, status,
+					"Data Transfer Failed");
+				return -ECOMM;
+			}
+		}
+
+		/* Wait for Transfer End */
+		i = 0;
+		do {
+			status = readl(&mci->sr);
+
+			if (status & error_flags) {
+				dump_cmd(cmdr, cmd->cmdarg, status,
+					"DTIP Wait Failed");
+				return -ECOMM;
+			}
+			i++;
+		} while ((status & MMCI_BIT(DTIP)) && i < 10000);
+		if (status & MMCI_BIT(DTIP)) {
+			dump_cmd(cmdr, cmd->cmdarg, status,
+				"XFER DTIP never unset, ignoring");
+		}
+	}
+
+	/*
+	 * After the switch command, wait for 8 clocks before the next
+	 * command
+	 */
+	if (cmd->cmdidx == MMC_CMD_SWITCH)
+		udelay(8*1000000 / priv->curr_clk); /* 8 clk in us */
+
+	return 0;
+}
+
+/*
+ * Entered into mmc structure during driver init
+ *
+ * Sends a command out on the bus and deals with the block data.
+ * Takes the mmc pointer, a command pointer, and an optional data pointer.
+ */
+static int
+mci_send_sp_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
+{
+	struct atmel_mci_priv *priv = mmc->priv;
+	atmel_mci_t *mci = priv->mci;
+	u32 cmdr;
+	u32 error_flags = 0;
+	u32 status;
+
+	debug("mci_send_sp_cmd\r\n");
+
+	if (!priv->initialized) {
+		puts ("MCI not initialized!\n");
+		return -ECOMM;
+	}
+
+	/* Figure out the transfer arguments */
+	cmdr = mci_encode_cmd(cmd, data, &error_flags);
+
+	/* For multi blocks read/write, set the block register */
+	if ((cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)
+			|| (cmd->cmdidx == MMC_CMD_WRITE_MULTIPLE_BLOCK))
+		writel(data->blocks | MMCI_BF(BLKLEN, mmc->read_bl_len),
+			&mci->blkr);
+
+	cmdr |= MMCI_BF(SPCMD, MMCI_SPCMD_INIT_CMD);
+	cmdr |= MMCI_BF(OPDCMD, 1);
 
 	/* Send the command */
 	writel(cmd->cmdarg, &mci->argr);
@@ -399,6 +602,7 @@ static const struct mmc_ops atmel_mci_ops = {
 	.send_cmd	= mci_send_cmd,
 	.set_ios	= mci_set_ios,
 	.init		= mci_init,
+	.send_spcmd = mci_send_sp_cmd,
 };
 
 /*

@@ -95,6 +95,8 @@ typedef volatile unsigned char	vu_char;
 #define CONFIG_SYS_SUPPORT_64BIT_DATA
 #endif
 
+/*#define DEBUG 1*/
+
 #ifdef DEBUG
 #define _DEBUG	1
 #else

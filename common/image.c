@@ -859,20 +859,32 @@ ulong genimg_get_kernel_addr(char * const img_addr)
  */
 int genimg_get_format(const void *img_addr)
 {
+	int rc = 0;
+
 #if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 	const image_header_t *hdr;
 
 	hdr = (const image_header_t *)img_addr;
-	if (image_check_magic(hdr))
+	if ((rc = image_check_magic(hdr)))
+	{
 		return IMAGE_FORMAT_LEGACY;
+	}
+	debug("image_check_magic: %d\r\n", rc);
 #endif
 #if IMAGE_ENABLE_FIT || IMAGE_ENABLE_OF_LIBFDT
-	if (fdt_check_header(img_addr) == 0)
+	if ((rc = fdt_check_header(img_addr)) == 0)
+	{
 		return IMAGE_FORMAT_FIT;
+	}
+	debug("fdt_check_header: %d\r\n", rc);
 #endif
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	if (android_image_check_header(img_addr) == 0)
 		return IMAGE_FORMAT_ANDROID;
+#endif
+
+#if !defined(CONFIG_IMAGE_FORMAT_LEGACY) && !IMAGE_ENABLE_FIT && !IMAGE_ENABLE_OF_LIBFDT
+	debug("NOTHING IS DEFINED...\r\n");
 #endif
 
 	return IMAGE_FORMAT_INVALID;
