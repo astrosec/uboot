@@ -57,59 +57,6 @@ static void dump_cmd(u32 cmdr, u32 arg, u32 status, const char* msg)
 	      cmdr, cmdr & 0x3F, arg, status, msg);
 }
 
-static void mci_set_data_timeout(struct mmc *mmc)
-{
-	atmel_mci_t *mci = (atmel_mci_t *)mmc->priv;
-
-	static const unsigned int dtomul_to_shift[] = {
-		0, 4, 7, 8, 10, 12, 16, 20,
-	};
-
-	unsigned int timeout_ns, timeout_clks;
-	unsigned int dtocyc, dtomul;
-	unsigned int shift;
-	u32 dtor;
-
-	/* we assume 1.5 ms data-read-access-time-1 (taac -> see CSD spec)
-	 * and 0 clock data-read-access-time-2 (nsac -> see CSD spec)
-	 */
-	//timeout_ns = 1500000;
-	timeout_ns = 5000000;
-	timeout_clks = 0;
-
-	debug("gen_atmel_mci: timeout_ns = %u\n", timeout_ns);
-
-	timeout_clks += (((timeout_ns + 9) / 10)
-			 * ((mmc->clock + 99999) / 100000) + 9999) / 10000;
-	if (!IS_SD(mmc))
-		timeout_clks *= 10;
-	else
-		timeout_clks *= 100;
-	debug("gen_atmel_mci: timeout_clks = %u\n", timeout_clks);
-
-	dtocyc = timeout_clks;
-	dtomul = 0;
-	shift = 0;
-	while (dtocyc > 15 && dtomul < 8) {
-		dtomul++;
-		shift = dtomul_to_shift[dtomul];
-		dtocyc = (timeout_clks + (1 << shift) - 1) >> shift;
-	}
-
-	if (dtomul >= 8) {
-		dtomul = 7;
-		dtocyc = 15;
-		puts("Warning: Using maximum data timeout\n");
-	}
-
-	dtor = (MMCI_BF(DTOMUL, dtomul)
-		| MMCI_BF(DTOCYC, dtocyc));
-	writel(dtor, &mci->dtor);
-
-	debug("mci: Using %u cycles data timeout (DTOR=0x%x)\n",
-	       dtocyc << shift, dtor);
-}
-
 /* Setup for MCI Clock and Block Size */
 static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 {
@@ -123,8 +70,6 @@ static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 
 	debug("mci: bus_hz is %u, setting clock %u Hz, block size %u\n",
 		bus_hz, hz, blklen);
-
-	//mci_set_data_timeout(mmc);
 
 	if (hz > 0) {
 		if (version >= 0x500) {
@@ -602,7 +547,6 @@ static const struct mmc_ops atmel_mci_ops = {
 	.send_cmd	= mci_send_cmd,
 	.set_ios	= mci_set_ios,
 	.init		= mci_init,
-	.send_spcmd = mci_send_sp_cmd,
 };
 
 /*
