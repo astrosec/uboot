@@ -136,6 +136,19 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	return ret;
 }
+
+int mmc_send_spcmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
+{
+	int ret;
+
+	debug("mmc_send_spcmd\r\n");
+
+	mmmc_trace_before_send(mmc, cmd);
+	ret = mmc->cfg->ops->send_spcmd(mmc, cmd, data);
+	mmmc_trace_after_send(mmc, cmd, ret);
+
+	return ret;
+}
 #endif
 
 int mmc_send_status(struct mmc *mmc, int timeout)
@@ -208,9 +221,15 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 		cmd.cmdidx = MMC_CMD_READ_SINGLE_BLOCK;
 
 	if (mmc->high_capacity)
+	{
+		debug("Reading high-capacity\r\n");
 		cmd.cmdarg = start;
+	}
 	else
+	{
+		debug("Not reading high-capacity\r\n");
 		cmd.cmdarg = start * mmc->read_bl_len;
+	}
 
 	cmd.resp_type = MMC_RSP_R1;
 
@@ -1567,18 +1586,32 @@ static int mmc_send_if_cond(struct mmc *mmc)
 	err = mmc_send_cmd(mmc, &cmd, NULL);
 
 	if (err)
+	{
+		debug("mmc_send_if_cond err = %d\r\n", err);
 		return err;
+	}
 
 	if ((cmd.response[0] & 0xff) != 0xaa)
+	{
+		debug("mmc_send_if_cond EOPNOTSUPP\r\n");
 		return -EOPNOTSUPP;
+	}
 	else
+	{
+		debug("mmc_send_if_cond setting SD_VERSION_2\r\n");
 		mmc->version = SD_VERSION_2;
+	}
 
 	return 0;
 }
 
 /* board-specific MMC power initializations. */
 __weak void board_mmc_power_init(void)
+{
+}
+
+/* board-specific MMC power initializations. */
+__weak void board_power_mmc_power_init(void)
 {
 }
 
@@ -1606,6 +1639,7 @@ int mmc_start_init(struct mmc *mmc)
 #ifdef CONFIG_FSL_ESDHC_ADAPTER_IDENT
 	mmc_adapter_card_type_ident();
 #endif
+
 	board_mmc_power_init();
 
 #ifdef CONFIG_DM_MMC_OPS
@@ -1619,6 +1653,10 @@ int mmc_start_init(struct mmc *mmc)
 	mmc->ddr_mode = 0;
 	mmc_set_bus_width(mmc, 1);
 	mmc_set_clock(mmc, 1);
+
+#ifdef CONFIG_AT91SAM9G20ISIS
+	board_isis_mmc_power_init(mmc);
+#endif
 
 	/* Reset the Card */
 	err = mmc_go_idle(mmc);

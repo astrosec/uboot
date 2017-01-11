@@ -1,0 +1,12 @@
+if TARGET_AT91SAM9G20ISIS
+
+config SYS_BOARD
+	default "at91sam9g20isis"
+
+config SYS_VENDOR
+	default "kubos"
+
+config SYS_CONFIG_NAME
+	default "at91sam9g20isis"
+
+endif
