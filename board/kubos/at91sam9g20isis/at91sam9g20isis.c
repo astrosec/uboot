@@ -21,7 +21,6 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/gpio.h>
 #include <atmel_mci.h>
-#include <mmc.h>
 
 #include <netdev.h>
 
@@ -87,22 +86,4 @@ int board_eth_init(bd_t *bis)
 	rc = macb_eth_initialize(0, (void *)ATMEL_BASE_EMAC0, 0x00);
 #endif
 	return rc;
-}
-
-
-void board_isis_mmc_power_init(struct mmc *mmc)
-{
-	struct mmc_cmd cmd;
-	int err;
-
-	udelay(1000);
-
-	cmd.cmdidx = MMC_CMD_GO_IDLE_STATE;
-	cmd.resp_type = MMC_RSP_NONE;
-	cmd.cmdarg = 0;
-
-	if (err)
-		debug("board_isis_mmc_power_init err=%d\r\n", err);
-
-	udelay(2000);
 }

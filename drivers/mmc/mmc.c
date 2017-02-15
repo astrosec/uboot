@@ -60,8 +60,8 @@ __weak int board_mmc_getcd(struct mmc *mmc)
 #ifdef CONFIG_MMC_TRACE
 void mmmc_trace_before_send(struct mmc *mmc, struct mmc_cmd *cmd)
 {
-	printf("CMD_SEND:%d\n", cmd->cmdidx);
-	printf("\t\tARG\t\t\t 0x%08X\n", cmd->cmdarg);
+	debug("CMD_SEND:%d\n", cmd->cmdidx);
+	debug("\t\tARG\t\t\t 0x%08X\n", cmd->cmdarg);
 }
 
 void mmmc_trace_after_send(struct mmc *mmc, struct mmc_cmd *cmd, int ret)
@@ -70,47 +70,47 @@ void mmmc_trace_after_send(struct mmc *mmc, struct mmc_cmd *cmd, int ret)
 	u8 *ptr;
 
 	if (ret) {
-		printf("\t\tRET\t\t\t %d\n", ret);
+		debug("\t\tRET\t\t\t %d\n", ret);
 	} else {
 		switch (cmd->resp_type) {
 		case MMC_RSP_NONE:
-			printf("\t\tMMC_RSP_NONE\n");
+			debug("\t\tMMC_RSP_NONE\n");
 			break;
 		case MMC_RSP_R1:
-			printf("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X \n",
+			debug("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X \n",
 				cmd->response[0]);
 			break;
 		case MMC_RSP_R1b:
-			printf("\t\tMMC_RSP_R1b\t\t 0x%08X \n",
+			debug("\t\tMMC_RSP_R1b\t\t 0x%08X \n",
 				cmd->response[0]);
 			break;
 		case MMC_RSP_R2:
-			printf("\t\tMMC_RSP_R2\t\t 0x%08X \n",
+			debug("\t\tMMC_RSP_R2\t\t 0x%08X \n",
 				cmd->response[0]);
-			printf("\t\t          \t\t 0x%08X \n",
+			debug("\t\t          \t\t 0x%08X \n",
 				cmd->response[1]);
-			printf("\t\t          \t\t 0x%08X \n",
+			debug("\t\t          \t\t 0x%08X \n",
 				cmd->response[2]);
-			printf("\t\t          \t\t 0x%08X \n",
+			debug("\t\t          \t\t 0x%08X \n",
 				cmd->response[3]);
-			printf("\n");
-			printf("\t\t\t\t\tDUMPING DATA\n");
+			debug("\n");
+			debug("\t\t\t\t\tDUMPING DATA\n");
 			for (i = 0; i < 4; i++) {
 				int j;
-				printf("\t\t\t\t\t%03d - ", i*4);
+				debug("\t\t\t\t\t%03d - ", i*4);
 				ptr = (u8 *)&cmd->response[i];
 				ptr += 3;
 				for (j = 0; j < 4; j++)
-					printf("%02X ", *ptr--);
-				printf("\n");
+					debug("%02X ", *ptr--);
+				debug("\n");
 			}
 			break;
 		case MMC_RSP_R3:
-			printf("\t\tMMC_RSP_R3,4\t\t 0x%08X \n",
+			debug("\t\tMMC_RSP_R3,4\t\t 0x%08X \n",
 				cmd->response[0]);
 			break;
 		default:
-			printf("\t\tERROR MMC rsp not supported\n");
+			debug("\t\tERROR MMC rsp not supported\n");
 			break;
 		}
 	}
@@ -121,7 +121,7 @@ void mmc_trace_state(struct mmc *mmc, struct mmc_cmd *cmd)
 	int status;
 
 	status = (cmd->response[0] & MMC_STATUS_CURR_STATE) >> 9;
-	printf("CURR STATE:%d\n", status);
+	debug("CURR STATE:%d\n", status);
 }
 #endif
 
@@ -157,7 +157,7 @@ int mmc_send_status(struct mmc *mmc, int timeout)
 				break;
 			else if (cmd.response[0] & MMC_STATUS_MASK) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-				printf("Status Error: 0x%08X\n",
+				debug("Status Error: 0x%08X\n",
 					cmd.response[0]);
 #endif
 				return -ECOMM;
@@ -174,7 +174,7 @@ int mmc_send_status(struct mmc *mmc, int timeout)
 	mmc_trace_state(mmc, &cmd);
 	if (timeout <= 0) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-		printf("Timeout waiting card ready\n");
+		debug("Timeout waiting card ready\n");
 #endif
 		return -ETIMEDOUT;
 	}
@@ -225,21 +225,28 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 	data.blocksize = mmc->read_bl_len;
 	data.flags = MMC_DATA_READ;
 
+	debug("mmc_send_cmd1\n");
 	if (mmc_send_cmd(mmc, &cmd, &data))
+	{
+		debug("return1\n");
 		return 0;
+	}
 
 	if (blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
 		cmd.resp_type = MMC_RSP_R1b;
+		debug("mmc_send_cmd2\n");
 		if (mmc_send_cmd(mmc, &cmd, NULL)) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-			printf("mmc fail to send stop cmd\n");
+			debug("mmc fail to send stop cmd\n");
 #endif
+			debug("return2\n");
 			return 0;
 		}
 	}
 
+	debug("return3\n");
 	return blkcnt;
 }
 
@@ -257,25 +264,32 @@ ulong mmc_bread(struct blk_desc *block_dev, lbaint_t start, lbaint_t blkcnt,
 	int err;
 	lbaint_t cur, blocks_todo = blkcnt;
 
+	debug("mmc_bread\n");
+
 	if (blkcnt == 0)
 		return 0;
 
 	struct mmc *mmc = find_mmc_device(dev_num);
 	if (!mmc)
+	{
+		debug("no mmc\n");
 		return 0;
+	}
 
+	debug("blk_dselect_hwpart\n");
 	err = blk_dselect_hwpart(block_dev, block_dev->hwpart);
 	if (err < 0)
 		return 0;
 
 	if ((start + blkcnt) > block_dev->lba) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-		printf("MMC: block number 0x" LBAF " exceeds max(0x" LBAF ")\n",
+		debug("MMC: block number 0x" LBAF " exceeds max(0x" LBAF ")\n",
 			start + blkcnt, block_dev->lba);
 #endif
 		return 0;
 	}
 
+	debug("mmc_set_blocklen\n");
 	if (mmc_set_blocklen(mmc, mmc->read_bl_len)) {
 		debug("%s: Failed to set blocklen\n", __func__);
 		return 0;
@@ -284,6 +298,7 @@ ulong mmc_bread(struct blk_desc *block_dev, lbaint_t start, lbaint_t blkcnt,
 	do {
 		cur = (blocks_todo > mmc->cfg->b_max) ?
 			mmc->cfg->b_max : blocks_todo;
+		debug("mmc_read_blocks: start %lu cur %lu\n", start, cur);
 		if (mmc_read_blocks(mmc, dst, start, cur) != cur) {
 			debug("%s: Failed to read blocks\n", __func__);
 			return 0;
@@ -293,6 +308,7 @@ ulong mmc_bread(struct blk_desc *block_dev, lbaint_t start, lbaint_t blkcnt,
 		dst += cur * mmc->read_bl_len;
 	} while (blocks_todo > 0);
 
+	debug("leaving mmc_bread\n");
 	return blkcnt;
 }
 
@@ -634,17 +650,17 @@ int mmc_hwpart_config(struct mmc *mmc,
 		return -EINVAL;
 
 	if (IS_SD(mmc) || (mmc->version < MMC_VERSION_4_41)) {
-		printf("eMMC >= 4.4 required for enhanced user data area\n");
+		debug("eMMC >= 4.4 required for enhanced user data area\n");
 		return -EMEDIUMTYPE;
 	}
 
 	if (!(mmc->part_support & PART_SUPPORT)) {
-		printf("Card does not support partitioning\n");
+		debug("Card does not support partitioning\n");
 		return -EMEDIUMTYPE;
 	}
 
 	if (!mmc->hc_wp_grp_size) {
-		printf("Card does not define HC WP group size\n");
+		debug("Card does not define HC WP group size\n");
 		return -EMEDIUMTYPE;
 	}
 
@@ -652,7 +668,7 @@ int mmc_hwpart_config(struct mmc *mmc,
 	if (conf->user.enh_size) {
 		if (conf->user.enh_size % mmc->hc_wp_grp_size ||
 		    conf->user.enh_start % mmc->hc_wp_grp_size) {
-			printf("User data enhanced area not HC WP group "
+			debug("User data enhanced area not HC WP group "
 			       "size aligned\n");
 			return -EINVAL;
 		}
@@ -671,7 +687,7 @@ int mmc_hwpart_config(struct mmc *mmc,
 
 	for (pidx = 0; pidx < 4; pidx++) {
 		if (conf->gp_part[pidx].size % mmc->hc_wp_grp_size) {
-			printf("GP%i partition not HC WP group size "
+			debug("GP%i partition not HC WP group size "
 			       "aligned\n", pidx+1);
 			return -EINVAL;
 		}
@@ -683,7 +699,7 @@ int mmc_hwpart_config(struct mmc *mmc,
 	}
 
 	if (part_attrs && ! (mmc->part_support & ENHNCD_SUPPORT)) {
-		printf("Card does not support enhanced attribute\n");
+		debug("Card does not support enhanced attribute\n");
 		return -EMEDIUMTYPE;
 	}
 
@@ -696,7 +712,7 @@ int mmc_hwpart_config(struct mmc *mmc,
 		(ext_csd[EXT_CSD_MAX_ENH_SIZE_MULT+1] << 8) +
 		ext_csd[EXT_CSD_MAX_ENH_SIZE_MULT];
 	if (tot_enh_size_mult > max_enh_size_mult) {
-		printf("Total enhanced size exceeds maximum (%u > %u)\n",
+		debug("Total enhanced size exceeds maximum (%u > %u)\n",
 		       tot_enh_size_mult, max_enh_size_mult);
 		return -EMEDIUMTYPE;
 	}
@@ -730,7 +746,7 @@ int mmc_hwpart_config(struct mmc *mmc,
 
 	if (ext_csd[EXT_CSD_PARTITION_SETTING] &
 	    EXT_CSD_PARTITION_SETTING_COMPLETED) {
-		printf("Card already partitioned\n");
+		debug("Card already partitioned\n");
 		return -EPERM;
 	}
 
@@ -1216,7 +1232,7 @@ static int mmc_startup(struct mmc *mmc)
 		cmd.cmdarg = (mmc->dsr & 0xffff) << 16;
 		cmd.resp_type = MMC_RSP_NONE;
 		if (mmc_send_cmd(mmc, &cmd, NULL))
-			printf("MMC: SET_DSR failed\n");
+			debug("MMC: SET_DSR failed\n");
 	}
 
 	/* Select the card, and put it into Transfer Mode */
@@ -1538,7 +1554,7 @@ static int mmc_startup(struct mmc *mmc)
 	bdesc->lba = lldiv(mmc->capacity, mmc->read_bl_len);
 #if !defined(CONFIG_SPL_BUILD) || \
 		(defined(CONFIG_SPL_LIBCOMMON_SUPPORT) && \
-		!defined(CONFIG_USE_TINY_PRINTF))
+		!defined(CONFIG_USE_TINY_debug))
 	sprintf(bdesc->vendor, "Man %06x Snr %04x%04x",
 		mmc->cid[0] >> 24, (mmc->cid[2] & 0xffff),
 		(mmc->cid[3] >> 16) & 0xffff);
@@ -1615,7 +1631,7 @@ int mmc_start_init(struct mmc *mmc)
 	if (no_card) {
 		mmc->has_init = 0;
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-		printf("MMC: no card present\n");
+		debug("MMC: no card present\n");
 #endif
 		return -ENOMEDIUM;
 	}
@@ -1641,10 +1657,6 @@ int mmc_start_init(struct mmc *mmc)
 	mmc_set_bus_width(mmc, 1);
 	mmc_set_clock(mmc, 1);
 
-#ifdef CONFIG_AT91SAM9G20ISIS
-	board_isis_mmc_power_init(mmc);
-#endif
-
 	/* Reset the Card */
 	err = mmc_go_idle(mmc);
 
@@ -1666,7 +1678,7 @@ int mmc_start_init(struct mmc *mmc)
 
 		if (err) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-			printf("Card did not respond to voltage select!\n");
+			debug("Card did not respond to voltage select!\n");
 #endif
 			return -EOPNOTSUPP;
 		}
@@ -1770,7 +1782,7 @@ static int mmc_probe(bd_t *bis)
 	uclass_foreach_dev(dev, uc) {
 		ret = device_probe(dev);
 		if (ret)
-			printf("%s - probe failed: %d\n", dev->name, ret);
+			debug("%s - probe failed: %d\n", dev->name, ret);
 	}
 
 	return 0;

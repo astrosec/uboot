@@ -17,7 +17,7 @@ int dfu_tftp_write(char *dfu_entity_name, unsigned int addr, unsigned int len,
 	int alt_setting_num, ret;
 	struct dfu_entity *dfu;
 
-	debug("%s: name: %s addr: 0x%x len: %d device: %s:%s\n", __func__,
+	printf("%s: name: %s addr: 0x%x len: %d device: %s:%s\n", __func__,
 	      dfu_entity_name, addr, len, interface, devstring);
 
 	ret = dfu_init_env_entities(interface, devstring);
@@ -38,7 +38,7 @@ int dfu_tftp_write(char *dfu_entity_name, unsigned int addr, unsigned int len,
 	}
 
 	strsep(&s, "@");
-	debug("%s: image name: %s strlen: %d\n", __func__, sb, strlen(sb));
+	printf("%s: image name: %s strlen: %d\n", __func__, sb, strlen(sb));
 
 	alt_setting_num = dfu_get_alt(sb);
 	free(sb);

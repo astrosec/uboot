@@ -59,6 +59,10 @@ void main_loop(void)
 	update_tftp(0UL, NULL, NULL);
 #endif /* CONFIG_UPDATE_TFTP */
 
+#if defined(CONFIG_UPDATE_KUBOS)
+	update_kubos();
+#endif /* CONFIG_UPDATE_KUBOS */
+
 	s = bootdelay_process();
 	if (cli_process_fdt(&s))
 		cli_secure_boot_cmd(s);
