@@ -40,10 +40,6 @@ static int do_dfu(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return update_tftp(addr, interface, devstring);
 	}
 #endif
-#ifdef CONFIG_UPDATE_KUBOS
-
-	return 0;
-#else
 
 	ret = dfu_init_env_entities(interface, devstring);
 	if (ret)
@@ -118,9 +114,7 @@ done:
 	g_dnl_clear_detach();
 
 	return ret;
-#endif
 }
-
 
 U_BOOT_CMD(dfu, CONFIG_SYS_MAXARGS, 1, do_dfu,
 	"Device Firmware Upgrade",

@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
 
 	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (-1 == lockfd) {
-		fprintf(stderr, "Error opening lock file %s\n", lockname);
+		fprintf(stderr, "Error opening lock file %s rc=%d\n", lockname, errno);
 		return EXIT_FAILURE;
 	}
 

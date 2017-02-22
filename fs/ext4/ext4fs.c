@@ -26,6 +26,7 @@
 #include <ext4fs.h>
 #include "ext4_common.h"
 #include <div64.h>
+#include <watchdog.h>
 
 int ext4fs_symlinknest;
 struct ext_filesystem ext_fs;
@@ -75,6 +76,13 @@ int ext4fs_read_file(struct ext2fs_node *node, loff_t pos,
 		int blockoff = pos - (blocksize * i);
 		int blockend = blocksize;
 		int skipfirst = 0;
+
+#ifdef CONFIG_AT91SAM9G20ISIS
+		WATCHDOG_RESET_COUNT(1000);
+#else
+		WATCHDOG_RESET();
+#endif
+
 		blknr = read_allocated_block(&(node->inode), i);
 		if (blknr < 0)
 			return -1;

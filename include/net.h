@@ -844,8 +844,6 @@ unsigned int random_port(void);
  */
 int update_tftp(ulong addr, char *interface, char *devstring);
 
-int update_kubos(void);
-
 /**********************************************************************/
 
 #endif /* __NET_H__ */

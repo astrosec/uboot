@@ -12,6 +12,7 @@
 #include <cli.h>
 #include <console.h>
 #include <version.h>
+#include <kubos.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -60,7 +61,15 @@ void main_loop(void)
 #endif /* CONFIG_UPDATE_TFTP */
 
 #if defined(CONFIG_UPDATE_KUBOS)
-	update_kubos();
+	if (update_kubos() == 0)
+	{
+		/* 
+		 * If everything goes well, we want to reboot into the new
+		 * files.  The watchdog gets tripped if we try to boot the
+		 * new kernel from here, so we reboot instead.
+		 */
+		do_reset(NULL, 0, 0, NULL);
+	}
 #endif /* CONFIG_UPDATE_KUBOS */
 
 	s = bootdelay_process();

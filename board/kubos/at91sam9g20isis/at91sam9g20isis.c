@@ -10,6 +10,7 @@
  *   has been modified for the at91sam9g20isis board.
  *   Extraneous options have been removed and some code
  *   to initialize the SD card port has been added.
+ *   Added logic to control external watchdog.
  * Author: Catherine Freed <catherine@kubos.co>
  */
 
@@ -62,6 +63,10 @@ int board_init(void)
 
 	at91_seriald_hw_init();
 
+#ifdef CONFIG_HW_WATCHDOG
+	hw_watchdog_init();
+#endif
+
 	return 0;
 }
 
@@ -87,3 +92,51 @@ int board_eth_init(bd_t *bis)
 #endif
 	return rc;
 }
+
+#ifdef CONFIG_HW_WATCHDOG
+
+static int wdc;
+
+void hw_watchdog_init(void)
+{
+	/* Mark watchdog pin as output */
+	wdc = 0;
+	at91_set_pio_output(AT91_PIO_PORTA, 30, 1);
+}
+
+void hw_watchdog_reset_count(int val)
+{
+	int i = 0;
+
+	if (wdc > val)
+	{
+
+		for (i = 0; i < 10; i++)
+		{
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 0);
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 1);
+		}
+
+		wdc = 0;
+	}
+
+	wdc++;
+
+	return;
+}
+
+void hw_watchdog_reset()
+{
+	hw_watchdog_reset_count(100000);
+}
+
+
+void hw_watchdog_force(void)
+{
+	wdc = 0;
+
+	hw_watchdog_reset();
+
+	return;
+}
+#endif /* CONFIG_HW_WATCHDOG */

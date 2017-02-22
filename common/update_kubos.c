@@ -15,58 +15,30 @@
  */
 
 #include <common.h>
-
-
-#define CONFIG_EXT4_WRITE
-
 #include <net.h>
 #include <ext4fs.h>
 #include <fat.h>
 #include <fs.h>
 #include <mmc.h>
+#include <kubos.h>
 
 
-#define KERNEL "kernel.itb"
-#define ROOTFS "rootfs"
-#define KERNEL_PART  5
+#define KERNEL "kpack.itb"
 #define UPGRADE_PART 7
 
-#define MAX_LOAD 10000000 //Max file size: 10MB
-
-//The boot partition is FAT format, not EXT4
-int update_kubos_kernel(struct blk_desc *block_dev, void *addr, loff_t len)
-{
-	disk_partition_t part_info = {};
-	char * file = "zImage";
-	loff_t actlen;
-	int ret = 0;
-
-	//Mount kernel partition
-	if(part_get_info(block_dev, KERNEL_PART, &part_info))
-	{
-		printf("ERROR: Could not mount kernel partition.  No partition table\n");
-	}
-
-	fat_set_blk_dev(block_dev, &part_info);
-
-	//Copy in new file
-	/*
-	 * Erase old file?  Rename old file?
-	 * For right now, probably just erase it...but definitely not in final version...
-	 */
-	printf("Info: Writing new kernel file\n");
-
-	ret = file_fat_write(file, addr, 0, len, &actlen);
-	if (ret < 0)
-	{
-		printf("ERROR: Couldn't write kernel file - %d\n", ret);
-
-		return -1;
-	}
-
-
-	return 0;
-}
+/*
+ * update_kubos
+ *
+ * U-Boot has a DFU utility which currently allows a board to download a new firmware package and
+ * distribute the package components to the appropriate end-point locations.
+ *
+ * We want to leverage the second half of this utility and distribute a new firmware package that's
+ * been copied into the upgrade partition, rather than via a USB/TFTP connection.
+ *
+ * Returns:
+ *    0 - An upgrade package was successfully installed
+ *   -1 - No upgrade package could be installed (either because of system error or because no package exists)
+ */
 
 int update_kubos(void)
 {
@@ -75,40 +47,42 @@ int update_kubos(void)
 	char * file;
 	char * env_addr;
 	loff_t actlen;
-	ulong addr;
+	ulong addr, part = 0;
 
-	int i, err, ret = 0;
+	int ret = 0;
 
 	/*
 	 * Load the SD card
 	 */
 	mmc = find_mmc_device(0);
-	if(!mmc)
+	if (!mmc)
 	{
-		printf("ERROR: Could not access SD card - %d\n", ret);
+		error("Could not access SD card\n");
+		return -1;
+
 	}
 
 	ret = mmc_init(mmc);
-	if(ret)
+	if (ret)
 	{
-		printf("ERROR: Could not init SD card - %d\n", ret);
+		error("Could not init SD card - %d\n", ret);
+		return -1;
 	}
 
 	/*
 	 * Get the name of the update file to load
-	 * Default will eventually be kpack.itb, probably
-	 * The thought is that non-default would be a version-specific file, like kpack-v2.0.1.itb
-	 * Allows us a) to track what version is being loaded and b) to rollback to a previous version
 	 */
-	file = getenv("updatefile");
+	file = getenv("kubos_updatefile");
 	if (file == NULL)
 	{
-		printf("INFO: updatefile envar not found. Using default\n");
+		debug("INFO: Kubos_updatefile envar not found. Searching for default '%s'\n", KERNEL);
 		file = KERNEL;
 	}
 
-	/* Temp address to load to */
-	if ((env_addr = getenv("loadaddr")) != NULL)
+	/*
+	 * Temp SDRAM address to load to
+	 */
+	if ((env_addr = getenv("kubos_loadaddr")) != NULL)
 	{
 		addr = simple_strtoul(env_addr, NULL, 16);
 	}
@@ -117,52 +91,71 @@ int update_kubos(void)
 		addr = CONFIG_SYS_SDRAM_BASE + 0x200;
 	}
 
-	//Mount the upgrade partition
-	if(part_get_info(&mmc->block_dev, UPGRADE_PART, &part_info))
+	/*
+	 * Get and mount the upgrade partition
+	 */
+	if ((env_addr = getenv("kubos_updatepart")) != NULL)
 	{
-		printf("ERROR: Could not mount upgrade partition.  No partition table\n");
+		part = simple_strtoul(env_addr, NULL, 16);
+	}
+	else
+	{
+		part = UPGRADE_PART;
 	}
 
+	if (part_get_info(&mmc->block_dev, part, &part_info))
+	{
+		error("Could not mount upgrade partition.  No partition table\n");
+		return -1;
+	}
 
-	printf("Info: Checking for new firmware files\n");
+	debug("INFO: Checking for new firmware files\n");
 
 	ext4fs_set_blk_dev(&mmc->block_dev, &part_info);
 
 	ret = ext4fs_mount(0);
 	if (!ret) {
-		printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
 
+		error("Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
 		return -1;
 	}
 
-	//This will be a loop eventually.  Right now just processing zImage
-	//for(i = 0; i < #_files; i++)
-	for(i = 0; i < 1; i++)
+	ret = ext4fs_exists(file);
+
+	/*
+	 * Upgrade file found, call the existing DFU utility
+	 */
+	if (ret)
 	{
-
-		ret = ext4fs_exists(file);
-		if(!ret)
-		{
-			continue;
-		}
-
-		printf("INFO: Found file to upgrade - %s\n", file);
+		debug("INFO: Found file to upgrade - %s\n", file);
 
 		ret = ext4_read_file(file, (void *)addr, 0, 0, &actlen);
+
 		if (ret < 0)
 		{
-			printf("ERROR: Couldn't read %s file - %d\n", file, ret);
-
-			continue;
+			error("Couldn't read %s file - %d\n", file, ret);
+			return -1;
 		}
-
-		ret = update_tftp(addr, "mmc", "0");
-		if(ret)
+		else
 		{
-			printf("ERROR: System update failed - %d\n", ret);
-		}
+			ret = update_tftp(addr, "mmc", "0");
 
+			if (ret)
+			{
+				error("System update failed - %d\n", ret);
+				return -1;
+			}
+		}
 	}
+	else
+	{
+		debug("INFO: No upgrade file found\n");
+		return -1;
+	}
+
+	/* Reset the updatefile name so that we resume usual boot after rebooting */
+	setenv("kubos_updatefile", "none");
+	saveenv();
 
 	return 0;
 }

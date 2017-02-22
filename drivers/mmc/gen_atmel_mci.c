@@ -13,6 +13,7 @@
 #include <mmc.h>
 #include <part.h>
 #include <malloc.h>
+#include <watchdog.h>
 #include <asm/io.h>
 #include <linux/errno.h>
 #include <asm/byteorder.h>
@@ -280,6 +281,13 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 				block_count < data->blocks && !status;
 				block_count++) {
 			word_count = 0;
+
+#ifdef CONFIG_AT91SAM9G20ISIS
+			WATCHDOG_RESET_COUNT(1000);
+#else
+			WATCHDOG_RESET();
+#endif
+
 			do {
 				status = mci_data_op(mci, ioptr, error_flags);
 				word_count++;

@@ -62,6 +62,9 @@
 #define CONFIG_AT91_GPIO
 #define CONFIG_AT91_GPIO_PULLUP	1	/* keep pullups on peripheral pins */
 
+/* external watchdog */
+#define CONFIG_HW_WATCHDOG
+
 /* serial console */
 #define CONFIG_ATMEL_USART
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
@@ -76,6 +79,8 @@
 #define CONFIG_BLUE_LED     AT91_PIN_PC15   /* Unused */
 
 /* File updates */
+#define CONFIG_USB_FUNCTION_DFU
+#define CONFIG_DFU_MMC
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 2 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~1M) */
 #define CONFIG_UPDATE_KUBOS
@@ -136,10 +141,10 @@
 #endif
 
 /* EXT4 */
-/* #ifdef CONFIG_CMD_EXT4 */
+#ifdef CONFIG_CMD_EXT4
 #define CONFIG_EXT4
 #define CONFIG_EXT4_WRITE
-/* #endif */
+#endif
 
 /* USB */
 #define CONFIG_USB_ATMEL
@@ -198,7 +203,9 @@
 
 /*
  * Size of malloc() pool
+ * Update: This size was increased to accommodate the DFU buffers. I'm not sure of the exact
+ * equation that would determine the optimum size.  Through trial and error I found that it
+ * should be more than 5MB, but less than 20MB.
  */
-/*#define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)*/
 #define CONFIG_SYS_MALLOC_LEN 	 	10 * SZ_1M
 #endif
