@@ -378,8 +378,6 @@ struct mmc_ops {
 	int (*init)(struct mmc *mmc);
 	int (*getcd)(struct mmc *mmc);
 	int (*getwp)(struct mmc *mmc);
-	int (*send_spcmd)(struct mmc *mmc,
-			struct mmc_cmd *cmd, struct mmc_data *data);
 };
 #endif
 

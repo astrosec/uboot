@@ -136,19 +136,6 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	return ret;
 }
-
-int mmc_send_spcmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
-{
-	int ret;
-
-	debug("mmc_send_spcmd\r\n");
-
-	mmmc_trace_before_send(mmc, cmd);
-	ret = mmc->cfg->ops->send_spcmd(mmc, cmd, data);
-	mmmc_trace_after_send(mmc, cmd, ret);
-
-	return ret;
-}
 #endif
 
 int mmc_send_status(struct mmc *mmc, int timeout)

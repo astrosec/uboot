@@ -101,8 +101,6 @@ void board_isis_mmc_power_init(struct mmc *mmc)
 	cmd.resp_type = MMC_RSP_NONE;
 	cmd.cmdarg = 0;
 
-	err = mmc_send_spcmd(mmc, &cmd, NULL);
-
 	if (err)
 		debug("board_isis_mmc_power_init err=%d\r\n", err);
 
