@@ -84,6 +84,7 @@ obj-$(CONFIG_CMD_SATA) += sata.o
 obj-$(CONFIG_SCSI) += scsi.o
 obj-$(CONFIG_UPDATE_TFTP) += update.o
 obj-$(CONFIG_DFU_TFTP) += update.o
+obj-$(CONFIG_UPDATE_KUBOS) += update_kubos.o
 obj-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
 
 endif # !CONFIG_SPL_BUILD

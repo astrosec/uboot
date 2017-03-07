@@ -41,8 +41,15 @@ int init_func_watchdog_reset(void);
 		#define WATCHDOG_RESET bl hw_watchdog_reset
 	#else
 		extern void hw_watchdog_reset(void);
+		extern void hw_watchdog_force(void);
 
 		#define WATCHDOG_RESET hw_watchdog_reset
+
+        #ifdef CONFIG_AT91SAM9G20ISIS
+            extern void hw_watchdog_reset_count(int val);
+
+            #define WATCHDOG_RESET_COUNT hw_watchdog_reset_count
+        #endif
 	#endif /* __ASSEMBLY__ */
 #else
 	/*

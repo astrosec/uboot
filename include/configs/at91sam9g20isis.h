@@ -26,6 +26,8 @@
  */
 #include <asm/hardware.h>
 
+#include <linux/sizes.h>
+
 /*
  * CONFIG_SYS_TEXT_BASE - The starting address of U-Boot.
  * Warning: changing CONFIG_SYS_TEXT_BASE requires
@@ -60,6 +62,9 @@
 #define CONFIG_AT91_GPIO
 #define CONFIG_AT91_GPIO_PULLUP	1	/* keep pullups on peripheral pins */
 
+/* external watchdog */
+#define CONFIG_HW_WATCHDOG
+
 /* serial console */
 #define CONFIG_ATMEL_USART
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
@@ -72,6 +77,13 @@
 #define	CONFIG_GREEN_LED	AT91_PIN_PC13	/* this is the user led */
 #define CONFIG_YELLOW_LED   AT91_PIN_PC14
 #define CONFIG_BLUE_LED     AT91_PIN_PC15   /* Unused */
+
+/* File updates */
+#define CONFIG_USB_FUNCTION_DFU
+#define CONFIG_DFU_MMC
+#define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
+#define CONFIG_SYS_DFU_MAX_FILE_SIZE 2 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~1M) */
+#define CONFIG_UPDATE_KUBOS
 
 /*
  * Command line configuration.
@@ -125,6 +137,13 @@
 /* FAT */
 #ifdef CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#define CONFIG_FAT_WRITE
+#endif
+
+/* EXT4 */
+#ifdef CONFIG_CMD_EXT4
+#define CONFIG_EXT4
+#define CONFIG_EXT4_WRITE
 #endif
 
 /* USB */
@@ -144,16 +163,25 @@
 #if defined(CONFIG_SYS_USE_NORFLASH)
 /* (bootstrap + u-boot + env +dtb in flash) + (linux in mmc) */
 #define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_OFFSET		0x50000 /* Must start on a sector boundary */
+#define CONFIG_ENV_OFFSET		0x70000 /* Must start on a sector boundary */
 #define CONFIG_ENV_SIZE		0x10000		/* 1 sector = 65 kB */
-/* Copy .dtb file (NORFLASH @ 0x60000, size = 0x5000) and kernel (SD card, partition 2) into SDRAM, then boot them */
-#define CONFIG_BOOTCOMMAND	"cp.b 0x10060000 0x21800000 0x5000; " \
-				"fatload mmc 0:2 0x21880000 zImage; " \
+/* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
+#define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
+				"fatload mmc 0:5 0x21880000 zImage; " \
 				"bootz 0x21880000 - 0x21800000"
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 "				\
-	"root=/dev/mmcblk0p3 rootwait"
+	"root=/dev/mmcblk0p6 rootwait"
+
+/* DFU Configuration */
+#define CONFIG_DFU_ALT_INFO \
+	"dfu_alt_info=" 		\
+	"zImage fat 0 5;" 		\
+	"rootfs part 0 6\0"
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	CONFIG_DFU_ALT_INFO
 
 #define CONFIG_SYS_FLASH_CFI			1
 #define CONFIG_FLASH_CFI_DRIVER			1
@@ -175,7 +203,9 @@
 
 /*
  * Size of malloc() pool
+ * Update: This size was increased to accommodate the DFU buffers. I'm not sure of the exact
+ * equation that would determine the optimum size.  Through trial and error I found that it
+ * should be more than 5MB, but less than 20MB.
  */
-#define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
-
+#define CONFIG_SYS_MALLOC_LEN 	 	10 * SZ_1M
 #endif

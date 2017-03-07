@@ -243,7 +243,11 @@ uint32_t ZEXPORT crc32_wd (uint32_t crc,
 			chunk = chunk_sz;
 		crc = crc32 (crc, curr, chunk);
 		curr += chunk;
+#ifdef CONFIG_AT91SAM9G20ISIS
+		WATCHDOG_RESET_COUNT(10);
+#else
 		WATCHDOG_RESET ();
+#endif
 	}
 #else
 	crc = crc32 (crc, buf, len);
