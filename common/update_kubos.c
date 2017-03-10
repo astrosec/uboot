@@ -22,9 +22,33 @@
 #include <mmc.h>
 #include <kubos.h>
 
-
-#define KERNEL "kpack.itb"
 #define UPGRADE_PART 7
+
+int update_kubos_count(void)
+{
+	int count;
+	char val[1];
+
+	int ret = 0;
+
+	count = atoi(getenv("kubos_updatecount"));
+
+	if (count > 3)
+	{
+		setenv("kubos_updatefile", "bad");
+		setenv("kubos_updatecount", "0");
+		ret = -1;
+	}
+	else
+	{
+		count++;
+		sprintf(val, "%d", count);
+		setenv("kubos_updatecount", val);
+	}
+
+	saveenv();
+	return ret;
+}
 
 /*
  * update_kubos
@@ -52,6 +76,33 @@ int update_kubos(void)
 	int ret = 0;
 
 	/*
+	 * Get the name of the update file to load
+	 */
+	file = getenv("kubos_updatefile");
+	if (file == NULL)
+	{
+		debug("INFO: Kubos_updatefile envar not found\n");
+		return -1;
+	}
+	else if (!strcmp(file, "none") || !strcmp(file, "bad")
+	{
+		debug("INFO: No update file specified\n");
+		return -1;
+	}
+
+	/*
+	 * Temp SDRAM address to load to
+	 */
+	if ((env_addr = getenv("kubos_loadaddr")) != NULL)
+	{
+		addr = simple_strtoul(env_addr, NULL, 16);
+	}
+	else
+	{
+		addr = CONFIG_SYS_SDRAM_BASE + 0x200;
+	}
+
+	/*
 	 * Load the SD card
 	 */
 	mmc = find_mmc_device(0);
@@ -67,28 +118,6 @@ int update_kubos(void)
 	{
 		error("Could not init SD card - %d\n", ret);
 		return -1;
-	}
-
-	/*
-	 * Get the name of the update file to load
-	 */
-	file = getenv("kubos_updatefile");
-	if (file == NULL)
-	{
-		debug("INFO: Kubos_updatefile envar not found. Searching for default '%s'\n", KERNEL);
-		file = KERNEL;
-	}
-
-	/*
-	 * Temp SDRAM address to load to
-	 */
-	if ((env_addr = getenv("kubos_loadaddr")) != NULL)
-	{
-		addr = simple_strtoul(env_addr, NULL, 16);
-	}
-	else
-	{
-		addr = CONFIG_SYS_SDRAM_BASE + 0x200;
 	}
 
 	/*
@@ -122,6 +151,12 @@ int update_kubos(void)
 
 	ret = ext4fs_exists(file);
 
+	if (update_kubos_count() != 0)
+	{
+		error("Number of update attempts exceeded. Abandoning update\n");
+		return -1;
+	}
+
 	/*
 	 * Upgrade file found, call the existing DFU utility
 	 */
@@ -149,12 +184,13 @@ int update_kubos(void)
 	}
 	else
 	{
-		debug("INFO: No upgrade file found\n");
+		debug("INFO: Upgrade file not found '%s'\n", file);
 		return -1;
 	}
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
 	setenv("kubos_updatefile", "none");
+	setenv("kubos_updatecount", "0");
 	saveenv();
 
 	return 0;
