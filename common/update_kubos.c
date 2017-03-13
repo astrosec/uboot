@@ -26,12 +26,20 @@
 
 int update_kubos_count(void)
 {
-	int count;
-	char val[1];
 
+	ulong count;
 	int ret = 0;
 
-	count = atoi(getenv("kubos_updatecount"));
+	char *val = getenv("kubos_updatecount");
+
+	if (val == NULL)
+	{
+		count = 0;
+	}
+	else
+	{
+		count = simple_strtoul(val, NULL, 10);
+	}
 
 	if (count > 3)
 	{
@@ -42,7 +50,7 @@ int update_kubos_count(void)
 	else
 	{
 		count++;
-		sprintf(val, "%d", count);
+		sprintf(val, "%ul", count);
 		setenv("kubos_updatecount", val);
 	}
 
@@ -85,7 +93,7 @@ int update_kubos(void)
 		debug("INFO: Kubos_updatefile envar not found\n");
 		return -1;
 	}
-	else if (!strcmp(file, "none") || !strcmp(file, "bad")
+	else if (!strcmp(file, "none") || !strcmp(file, "bad"))
 	{
 		debug("INFO: No update file specified\n");
 		return -1;
