@@ -62,6 +62,7 @@ int update_kubos_count(void)
  * Returns:
  *    0 - An upgrade package was successfully installed
  *   -1 - No upgrade package could be installed (either because of system error or because no package exists)
+ *   -2 - No upgrade package could be installed, but trigger a reboot so that we can retry.
  */
 
 int update_kubos(void)
@@ -169,7 +170,7 @@ int update_kubos(void)
 		if (ret < 0)
 		{
 			error("Couldn't read %s file - %d\n", file, ret);
-			return -1;
+			return -2;
 		}
 		else
 		{
@@ -178,14 +179,14 @@ int update_kubos(void)
 			if (ret)
 			{
 				error("System update failed - %d\n", ret);
-				return -1;
+				return -2;
 			}
 		}
 	}
 	else
 	{
 		debug("INFO: Upgrade file not found '%s'\n", file);
-		return -1;
+		return -2;
 	}
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
