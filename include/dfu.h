@@ -23,6 +23,7 @@ enum dfu_device_type {
 	DFU_DEV_NAND,
 	DFU_DEV_RAM,
 	DFU_DEV_SF,
+	DFU_DEV_NOR
 };
 
 enum dfu_layout {
@@ -80,6 +81,11 @@ struct sf_internal_data {
 	u64 size;
 };
 
+struct nor_internal_data {
+	u64 start;
+	u64 size;
+};
+
 #define DFU_NAME_SIZE			32
 #define DFU_CMD_BUF_SIZE		128
 #ifndef CONFIG_SYS_DFU_DATA_BUF_SIZE
@@ -108,6 +114,7 @@ struct dfu_entity {
 		struct nand_internal_data nand;
 		struct ram_internal_data ram;
 		struct sf_internal_data sf;
+		struct nor_internal_data nor;
 	} data;
 
 	long (*get_medium_size)(struct dfu_entity *dfu);
@@ -243,6 +250,17 @@ static inline int dfu_fill_entity_sf(struct dfu_entity *dfu, char *devstr,
 				     char *s)
 {
 	puts("SF support not available!\n");
+	return -1;
+}
+#endif
+
+#ifdef CONFIG_DFU_NOR
+extern int dfu_fill_entity_nor(struct dfu_entity *dfu, char *devstr, char *s);
+#else
+static inline int dfu_fill_entity_nor(struct dfu_entity *dfu, char *devstr,
+				     char *s)
+{
+	puts("NOR support not available!\n");
 	return -1;
 }
 #endif

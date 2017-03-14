@@ -81,6 +81,7 @@
 /* File updates */
 #define CONFIG_USB_FUNCTION_DFU
 #define CONFIG_DFU_MMC
+#define CONFIG_DFU_NOR
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 2 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~1M) */
 #define CONFIG_UPDATE_KUBOS
