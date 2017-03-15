@@ -39,7 +39,7 @@ static int dfu_write_medium_nor(struct dfu_entity *dfu,
 
 	ulong end_addr = offset + *len - 1;
 
-	printf("dfu_write_medium_nor: start=%ul, end=%ul, buf=%p, len=%ul\n", offset, end_addr, buf, len);
+	printf("dfu_write_medium_nor: start=%lu, end=%lu, buf=%p, len=%lu\n", offset, end_addr, buf, len);
 
 	if ((ret = flash_sect_protect(0, offset, end_addr)) != 0)
 	{
@@ -47,21 +47,21 @@ static int dfu_write_medium_nor(struct dfu_entity *dfu,
 		return ret;
 	}
 
-	if ((ret = flash_sect_erase(offset, end_addr) != 0)
+	if ((ret = flash_sect_erase(offset, end_addr)) != 0)
 	{
 		printf("Couldn't unprotect flash sector/s: %d\n", ret);
 		flash_sect_protect(1, offset, end_addr);
 		return ret;
 	}
 
-	if ((ret = flash_write(buf, offset, *len) != 0)
+	if ((ret = flash_write(buf, offset, *len)) != 0)
 	{
 		printf("Couldn't unprotect flash sector/s: %d\n", ret);
 		flash_sect_protect(1, offset, end_addr);
 		return ret;
 	}
 
-	if ((ret = flash_sect_protect(1, offset, end_addr) != 0)
+	if ((ret = flash_sect_protect(1, offset, end_addr)) != 0)
 	{
 		printf("Couldn't protect flash sector/s: %d\n", ret);
 		return ret;
@@ -96,8 +96,6 @@ int dfu_fill_entity_nor(struct dfu_entity *dfu, char *devstr, char *s)
 		printf("%s: Memory layout (%s) not supported!\n", __func__, st);
 		return -1;
 	}
-
-	dfu->data.nor.info = addr2info(dfu->data.nor.start);
 
 	dfu->get_medium_size = dfu_get_medium_size_nor;
 	dfu->read_medium = dfu_read_medium_nor;

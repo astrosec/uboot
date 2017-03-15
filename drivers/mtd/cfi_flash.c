@@ -1394,7 +1394,7 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 		cword.w32 = 0;
 
 #ifdef CONFIG_AT91SAM9G20ISIS
-		WATCHDOG_RESET_COUNT(1000);
+		WATCHDOG_RESET_COUNT(5000);
 #else
 		WATCHDOG_RESET();
 #endif

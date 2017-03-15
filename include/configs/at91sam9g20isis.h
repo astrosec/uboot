@@ -181,6 +181,11 @@
 	"zImage fat 0 5;" 		\
 	"rootfs part 0 6\0"
 
+#define CONFIG_DFU_ALT_INFO_NOR \
+	"dfu_alt_info_nor="		    \
+	"uboot raw 0xA000 " CONFIG_SECT_SIZE*3 \
+	"\0"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_DFU_ALT_INFO
 

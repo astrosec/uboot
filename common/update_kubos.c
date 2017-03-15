@@ -50,7 +50,7 @@ int update_kubos_count(void)
 	else
 	{
 		count++;
-		sprintf(val, "%ul", count);
+		sprintf(val, "%lu", count);
 		setenv("kubos_updatecount", val);
 	}
 
