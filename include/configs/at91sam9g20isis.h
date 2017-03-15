@@ -187,8 +187,8 @@
 #define DFU_ALT_INFO_NOR \
 	"dfu_alt_info_nor="		    \
 	"uboot raw 0xA000 0x56000;" \
-	"uboot-env raw " CONFIG_ENV_OFFSET " " CONFIG_ENV_SIZE ";" \
-	"dtb raw " CONFIG_DTB_OFFSET " " CONFIG_LARGE_SECT_SIZE ";" \
+	"uboot-env raw 0x70000 0x10000;" \
+	"dtb raw 0x80000 0x10000;" \
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
