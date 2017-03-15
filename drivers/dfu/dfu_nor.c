@@ -40,14 +40,17 @@ static int dfu_write_medium_nor(struct dfu_entity *dfu,
 	ulong start_addr = offset + dfu->data.nor.start + CONFIG_SYS_FLASH_BASE;
 	ulong end_addr = start_addr + *len - 1;
 
+	ulong end_offset = *len;
+	end_offset += offset;
+
 	if (flash_sect_roundb(&end_addr) != 0)
 	{
 		return -1;
 	}
 
-	if (offset + *len > dfu->data.nor.size)
+	if (end_offset > dfu->data.nor.size)
 	{
-		printf("File exceeds entity size. %lx > %lx\n", offset + *len, dfu->data.nor.size);
+		printf("File exceeds entity size. %lx > %llx\n", end_offset, dfu->data.nor.size);
 		return -1;
 	}
 
@@ -109,7 +112,7 @@ int dfu_fill_entity_nor(struct dfu_entity *dfu, char *devstr, char *s)
 		return -1;
 	}
 
-	debug("Adding entity: name=%s start=%lx size=%lx\n", dfu->name, dfu->data.nor.start, dfu->data.nor.size);
+	debug("Adding entity: name=%s start=%llx size=%llx\n", dfu->name, dfu->data.nor.start, dfu->data.nor.size);
 
 	dfu->get_medium_size = dfu_get_medium_size_nor;
 	dfu->read_medium = dfu_read_medium_nor;
