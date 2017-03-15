@@ -188,7 +188,7 @@
 	"dfu_alt_info_nor="		    \
 	"uboot raw 0xA000 0x56000;" \
 	"uboot-env raw 0x70000 0x10000;" \
-	"dtb raw 0x80000 0x10000;" \
+	"dtb raw 0x80000 0x10000" \
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

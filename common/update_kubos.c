@@ -34,24 +34,24 @@ int update_kubos_count(void)
 
 	if (val == NULL)
 	{
-		count = 0;
+		setenv("kubos_updatecount", "1");
 	}
 	else
 	{
 		count = simple_strtoul(val, NULL, 10);
-	}
 
-	if (count > 3)
-	{
-		setenv("kubos_updatefile", "bad");
-		setenv("kubos_updatecount", "0");
-		ret = -1;
-	}
-	else
-	{
-		count++;
-		sprintf(val, "%lu", count);
-		setenv("kubos_updatecount", val);
+		if (count > 1)
+		{
+			setenv("kubos_updatefile", "bad");
+			setenv("kubos_updatecount", "0");
+			ret = -1;
+		}
+		else
+		{
+			count++;
+			sprintf(val, "%lu", count);
+			setenv("kubos_updatecount", val);
+		}
 	}
 
 	saveenv();
@@ -211,8 +211,12 @@ int update_kubos(void)
 
 			if (ret)
 			{
-				error("System update failed - %d\n", ret);
+				error("System upgrade failed - %d\n", ret);
 				return -2;
+			}
+			else
+			{
+				debug("INFO: Upgrade completed successfully\n");
 			}
 		}
 	}
