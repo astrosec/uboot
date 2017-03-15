@@ -37,31 +37,32 @@ static int dfu_write_medium_nor(struct dfu_entity *dfu,
 {
 	int ret;
 
-	ulong end_addr = offset + *len - 1;
+	ulong start_addr = offset + CONFIG_SYS_FLASH_BASE;
+	ulong end_addr = start_addr + *len - 1;
 
-	printf("dfu_write_medium_nor: start=%lu, end=%lu, buf=%p, len=%lu\n", offset, end_addr, buf, len);
+	printf("dfu_write_medium_nor: start=%lu, end=%lu, buf=%p, len=%lu\n", start_addr, end_addr, buf, len);
 
-	if ((ret = flash_sect_protect(0, offset, end_addr)) != 0)
+	if ((ret = flash_sect_protect(0, start_addr, end_addr)) != 0)
 	{
 		printf("Couldn't unprotect flash sector/s: %d\n", ret);
 		return ret;
 	}
 
-	if ((ret = flash_sect_erase(offset, end_addr)) != 0)
+	if ((ret = flash_sect_erase(start_addr, end_addr)) != 0)
 	{
 		printf("Couldn't unprotect flash sector/s: %d\n", ret);
-		flash_sect_protect(1, offset, end_addr);
+		flash_sect_protect(1, start_addr, end_addr);
 		return ret;
 	}
 
-	if ((ret = flash_write(buf, offset, *len)) != 0)
+	if ((ret = flash_write(buf, start_addr, *len)) != 0)
 	{
 		printf("Couldn't unprotect flash sector/s: %d\n", ret);
-		flash_sect_protect(1, offset, end_addr);
+		flash_sect_protect(1, start_addr, end_addr);
 		return ret;
 	}
 
-	if ((ret = flash_sect_protect(1, offset, end_addr)) != 0)
+	if ((ret = flash_sect_protect(1, start_addr, end_addr)) != 0)
 	{
 		printf("Couldn't protect flash sector/s: %d\n", ret);
 		return ret;

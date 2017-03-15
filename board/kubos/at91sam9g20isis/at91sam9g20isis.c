@@ -25,6 +25,8 @@
 
 #include <netdev.h>
 
+#define DEFAULT_WATCHDOG_COUNT 100000
+
 DECLARE_GLOBAL_DATA_PTR;
 
 /* ------------------------------------------------------------------------- */
@@ -127,13 +129,13 @@ void hw_watchdog_reset_count(int val)
 
 void hw_watchdog_reset()
 {
-	hw_watchdog_reset_count(100000);
+	hw_watchdog_reset_count(DEFAULT_WATCHDOG_COUNT);
 }
 
 
 void hw_watchdog_force(void)
 {
-	wdc = 0;
+	wdc = DEFAULT_WATCHDOG_COUNT + 1;
 
 	hw_watchdog_reset();
 

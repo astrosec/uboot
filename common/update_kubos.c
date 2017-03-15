@@ -79,6 +79,7 @@ int update_kubos(void)
 	disk_partition_t part_info = {};
 	char * file;
 	char * env_addr;
+	char * dfu_info;
 	loff_t actlen;
 	ulong addr, part = 0;
 
@@ -182,7 +183,31 @@ int update_kubos(void)
 		}
 		else
 		{
-			ret = update_tftp(addr, "mmc", "0");
+			if (strstr(file,"nor") != NULL)
+			{
+				if ((dfu_info = getenv("dfu_alt_info_nor")) == NULL)
+				{
+					error("Can't upgrade nor files, dfu_alt_info_nor not defined\n");
+					return -2;
+				}
+
+				setenv("dfu_alt_info", dfu_info);
+
+				/* The "0" parameter isn't used for NOR flash, but it has to be non-NULL */
+				ret = update_tftp(addr, "nor", "0");
+			}
+			else
+			{
+				if ((dfu_info = getenv("dfu_alt_info_mmc")) == NULL)
+				{
+					error("Can't upgrade mmc files, dfu_alt_info_mmc not defined\n");
+					return -2;
+				}
+
+				setenv("dfu_alt_info", dfu_info);
+
+				ret = update_tftp(addr, "mmc", "0");
+			}
 
 			if (ret)
 			{
