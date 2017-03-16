@@ -25,6 +25,8 @@
 #define UPGRADE_PART 7
 #define COUNT_ENVAR "kubos_updatecount"
 #define FILE_ENVAR  "kubos_updatefile"
+#define PART_ENVAR  "kubos_updatepart"
+#define LOAD_ENVAR  "kubos_loadaddr"
 
 int update_kubos_count(void)
 {
@@ -93,7 +95,7 @@ int update_kubos(void)
 	file = getenv(FILE_ENVAR);
 	if (file == NULL)
 	{
-		debug("INFO: Kubos_updatefile envar not found\n");
+		debug("INFO: %s envar not found\n", FILE_ENVAR);
 		return ERR_NO_REBOOT;
 	}
 	else if (!strcmp(file, "none") || !strcmp(file, "bad"))
@@ -105,7 +107,7 @@ int update_kubos(void)
 	/*
 	 * Temp SDRAM address to load to
 	 */
-	if ((env_addr = getenv("kubos_loadaddr")) != NULL)
+	if ((env_addr = getenv(LOAD_ENVAR)) != NULL)
 	{
 		addr = simple_strtoul(env_addr, NULL, 16);
 	}
@@ -135,7 +137,7 @@ int update_kubos(void)
 	/*
 	 * Get and mount the upgrade partition
 	 */
-	if ((env_addr = getenv("kubos_updatepart")) != NULL)
+	if ((env_addr = getenv(PART_ENVAR)) != NULL)
 	{
 		part = simple_strtoul(env_addr, NULL, 16);
 	}
