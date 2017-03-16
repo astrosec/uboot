@@ -12,7 +12,7 @@ config UPDATE_KUBOS
 	  This option allows performing update of DFU-managed medium with data
 	  packaged in Kubos "kpack" files. 
 
-if CMD_DFU || if UPDATE_KUBOS
+if CMD_DFU || UPDATE_KUBOS
 config DFU_TFTP
 	bool "DFU via TFTP"
 	help
