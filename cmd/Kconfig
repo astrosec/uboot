@@ -568,7 +568,7 @@ config CMD_CACHE
 	  
 config CMD_FITUPD
 	bool "fitupd"
-	depends on UPDATE_TFTP
+	depends on UPDATE_KUBOS || DFU_TFTP
 	help
 	  Run update from FIT image or TFTP address
 

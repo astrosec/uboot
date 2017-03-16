@@ -23,6 +23,8 @@
 #include <kubos.h>
 
 #define UPGRADE_PART 7
+#define COUNT_ENVAR "kubos_updatecount"
+#define FILE_ENVAR "kubos_updatefile"
 
 int update_kubos_count(void)
 {
@@ -30,11 +32,11 @@ int update_kubos_count(void)
 	ulong count;
 	int ret = 0;
 
-	char *val = getenv("kubos_updatecount");
+	char *val = getenv(COUNT_ENVAR);
 
 	if (val == NULL)
 	{
-		setenv("kubos_updatecount", "1");
+		setenv(COUNT_ENVAR, "1");
 	}
 	else
 	{
@@ -42,15 +44,15 @@ int update_kubos_count(void)
 
 		if (count > 1)
 		{
-			setenv("kubos_updatefile", "bad");
-			setenv("kubos_updatecount", "0");
+			setenv(FILE_ENVAR, "bad");
+			setenv(COUNT_ENVAR, "0");
 			ret = -1;
 		}
 		else
 		{
 			count++;
 			sprintf(val, "%lu", count);
-			setenv("kubos_updatecount", val);
+			setenv(COUNT_ENVAR, val);
 		}
 	}
 
@@ -88,7 +90,7 @@ int update_kubos(void)
 	/*
 	 * Get the name of the update file to load
 	 */
-	file = getenv("kubos_updatefile");
+	file = getenv(FILE_ENVAR);
 	if (file == NULL)
 	{
 		debug("INFO: Kubos_updatefile envar not found\n");
@@ -227,8 +229,8 @@ int update_kubos(void)
 	}
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
-	setenv("kubos_updatefile", "none");
-	setenv("kubos_updatecount", "0");
+	setenv(FILE_ENVAR, "none");
+	setenv(COUNT_ENVAR, "0");
 	saveenv();
 
 	return 0;
