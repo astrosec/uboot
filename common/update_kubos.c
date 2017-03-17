@@ -24,13 +24,15 @@
 
 #define UPGRADE_PART 7
 #define COUNT_ENVAR "kubos_updatecount"
-#define FILE_ENVAR "kubos_updatefile"
+#define FILE_ENVAR  "kubos_updatefile"
+#define PART_ENVAR  "kubos_updatepart"
+#define LOAD_ENVAR  "kubos_loadaddr"
 
 int update_kubos_count(void)
 {
 
 	ulong count;
-	int ret = 0;
+	int ret = -1;
 
 	char *val = getenv(COUNT_ENVAR);
 
@@ -85,7 +87,7 @@ int update_kubos(void)
 	loff_t actlen;
 	ulong addr, part = 0;
 
-	int ret = 0;
+	int ret = ERR_NO_REBOOT;
 
 	/*
 	 * Get the name of the update file to load
@@ -93,19 +95,19 @@ int update_kubos(void)
 	file = getenv(FILE_ENVAR);
 	if (file == NULL)
 	{
-		debug("INFO: Kubos_updatefile envar not found\n");
-		return -1;
+		debug("INFO: %s envar not found\n", FILE_ENVAR);
+		return ERR_NO_REBOOT;
 	}
 	else if (!strcmp(file, "none") || !strcmp(file, "bad"))
 	{
 		debug("INFO: No update file specified\n");
-		return -1;
+		return ERR_NO_REBOOT;
 	}
 
 	/*
 	 * Temp SDRAM address to load to
 	 */
-	if ((env_addr = getenv("kubos_loadaddr")) != NULL)
+	if ((env_addr = getenv(LOAD_ENVAR)) != NULL)
 	{
 		addr = simple_strtoul(env_addr, NULL, 16);
 	}
@@ -121,7 +123,7 @@ int update_kubos(void)
 	if (!mmc)
 	{
 		error("Could not access SD card\n");
-		return -1;
+		return ERR_NO_REBOOT;
 
 	}
 
@@ -129,13 +131,13 @@ int update_kubos(void)
 	if (ret)
 	{
 		error("Could not init SD card - %d\n", ret);
-		return -1;
+		return ERR_NO_REBOOT;
 	}
 
 	/*
 	 * Get and mount the upgrade partition
 	 */
-	if ((env_addr = getenv("kubos_updatepart")) != NULL)
+	if ((env_addr = getenv(PART_ENVAR)) != NULL)
 	{
 		part = simple_strtoul(env_addr, NULL, 16);
 	}
@@ -147,7 +149,7 @@ int update_kubos(void)
 	if (part_get_info(&mmc->block_dev, part, &part_info))
 	{
 		error("Could not mount upgrade partition.  No partition table\n");
-		return -1;
+		return ERR_NO_REBOOT;
 	}
 
 	debug("INFO: Checking for new firmware files\n");
@@ -158,7 +160,7 @@ int update_kubos(void)
 	if (!ret) {
 
 		error("Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
-		return -1;
+		return ERR_NO_REBOOT;
 	}
 
 	ret = ext4fs_exists(file);
@@ -166,7 +168,7 @@ int update_kubos(void)
 	if (update_kubos_count() != 0)
 	{
 		error("Number of update attempts exceeded. Abandoning update\n");
-		return -1;
+		return ERR_NO_REBOOT;
 	}
 
 	/*
@@ -181,7 +183,7 @@ int update_kubos(void)
 		if (ret < 0)
 		{
 			error("Couldn't read %s file - %d\n", file, ret);
-			return -2;
+			return ERR_REBOOT;
 		}
 		else
 		{
@@ -190,7 +192,7 @@ int update_kubos(void)
 				if ((dfu_info = getenv("dfu_alt_info_nor")) == NULL)
 				{
 					error("Can't upgrade nor files, dfu_alt_info_nor not defined\n");
-					return -2;
+					return ERR_REBOOT;
 				}
 
 				setenv("dfu_alt_info", dfu_info);
@@ -203,7 +205,7 @@ int update_kubos(void)
 				if ((dfu_info = getenv("dfu_alt_info_mmc")) == NULL)
 				{
 					error("Can't upgrade mmc files, dfu_alt_info_mmc not defined\n");
-					return -2;
+					return ERR_REBOOT;
 				}
 
 				setenv("dfu_alt_info", dfu_info);
@@ -214,7 +216,7 @@ int update_kubos(void)
 			if (ret)
 			{
 				error("System upgrade failed - %d\n", ret);
-				return -2;
+				return ERR_REBOOT;
 			}
 			else
 			{
@@ -225,7 +227,7 @@ int update_kubos(void)
 	else
 	{
 		debug("INFO: Upgrade file not found '%s'\n", file);
-		return -2;
+		return ERR_REBOOT;
 	}
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
@@ -233,5 +235,5 @@ int update_kubos(void)
 	setenv(COUNT_ENVAR, "0");
 	saveenv();
 
-	return 0;
+	return OK_REBOOT;
 }
