@@ -61,12 +61,15 @@ void main_loop(void)
 #endif /* CONFIG_UPDATE_TFTP */
 
 #if defined(CONFIG_UPDATE_KUBOS)
-	if (update_kubos() == 0)
+	if (update_kubos() != ERR_NO_REBOOT)
 	{
 		/* 
-		 * If everything goes well, we want to reboot into the new
+		 * If everything went well, we want to reboot into the new
 		 * files.  The watchdog gets tripped if we try to boot the
 		 * new kernel from here, so we reboot instead.
+		 *
+		 * If everything didn't go well but we still hit this line,
+		 * it means we want to reboot and re-attempt the upgrade
 		 */
 		do_reset(NULL, 0, 0, NULL);
 	}

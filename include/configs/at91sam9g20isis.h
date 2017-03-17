@@ -81,6 +81,7 @@
 /* File updates */
 #define CONFIG_USB_FUNCTION_DFU
 #define CONFIG_DFU_MMC
+#define CONFIG_DFU_NOR
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 2 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~1M) */
 #define CONFIG_UPDATE_KUBOS
@@ -161,10 +162,13 @@
 #define CONFIG_SYS_MEMTEST_END			0x20e00000
 
 #if defined(CONFIG_SYS_USE_NORFLASH)
+#define CONFIG_SMALL_SECT_SIZE   0x1000
+#define CONFIG_LARGE_SECT_SIZE   0x10000
 /* (bootstrap + u-boot + env +dtb in flash) + (linux in mmc) */
 #define CONFIG_ENV_IS_IN_FLASH	1
 #define CONFIG_ENV_OFFSET		0x70000 /* Must start on a sector boundary */
-#define CONFIG_ENV_SIZE		0x10000		/* 1 sector = 65 kB */
+#define CONFIG_ENV_SIZE		    CONFIG_LARGE_SECT_SIZE /* 1 sector = 65 kB */
+#define CONFIG_DTB_OFFSET       0x80000
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x21880000 zImage; " \
@@ -175,13 +179,21 @@
 	"root=/dev/mmcblk0p6 rootwait"
 
 /* DFU Configuration */
-#define CONFIG_DFU_ALT_INFO \
-	"dfu_alt_info=" 		\
+#define DFU_ALT_INFO_MMC \
+	"dfu_alt_info_mmc=" 		\
 	"zImage fat 0 5;" 		\
 	"rootfs part 0 6\0"
 
+#define DFU_ALT_INFO_NOR \
+	"dfu_alt_info_nor="		    \
+	"uboot raw 0xA000 0x56000;" \
+	"uboot-env raw 0x70000 0x10000;" \
+	"dtb raw 0x80000 0x10000" \
+	"\0"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	CONFIG_DFU_ALT_INFO
+	DFU_ALT_INFO_MMC \
+	DFU_ALT_INFO_NOR
 
 #define CONFIG_SYS_FLASH_CFI			1
 #define CONFIG_FLASH_CFI_DRIVER			1

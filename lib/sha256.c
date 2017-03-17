@@ -276,7 +276,11 @@ void sha256_csum_wd(const unsigned char *input, unsigned int ilen,
 			chunk = chunk_sz;
 		sha256_update(&ctx, curr, chunk);
 		curr += chunk;
-		WATCHDOG_RESET();
+#ifdef CONFIG_AT91SAM9G20ISIS
+		WATCHDOG_RESET_COUNT(5);
+#else
+		WATCHDOG_RESET ();
+#endif
 	}
 #else
 	sha256_update(&ctx, input, ilen);

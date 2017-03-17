@@ -25,14 +25,22 @@
  *
  * Returns:
  *    0 - An upgrade package was successfully installed
- *   -1 - No upgrade package could be installed (either because of system error or because no package exists)
+ *   -1 - No upgrade package could be installed and the system should continue normal boot
+ *   -2 - No upgrade package could be installed, bu the system should be rebooted so the update can
+ *        be attempted again.
  */
 
 #ifndef __KUBOS_H__
 #define __KUBOS_H__
 
 #ifdef CONFIG_UPDATE_KUBOS
+
+#define OK_REBOOT      0
+#define ERR_NO_REBOOT -1
+#define ERR_REBOOT    -2
+
 int update_kubos(void);
+
 #endif
 
 #endif /* __KUBOS_H__ */
