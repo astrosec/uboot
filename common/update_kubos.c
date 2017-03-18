@@ -53,8 +53,7 @@ int update_kubos_count(void)
 		else
 		{
 			count++;
-			sprintf(val, "%lu", count);
-			setenv(COUNT_ENVAR, val);
+			setenv_ulong(COUNT_ENVAR, count);
 		}
 	}
 
@@ -71,13 +70,17 @@ int update_kubos_count(void)
  * We want to leverage the second half of this utility and distribute a new firmware package that's
  * been copied into the upgrade partition, rather than via a USB/TFTP connection.
  *
+ * Input:
+ *    bool upgrade - Indicates whether we're installing a new package as part of an upgrade (true),
+ *        or part of recovery (false).
+ *
  * Returns:
  *    0 - An upgrade package was successfully installed
  *   -1 - No upgrade package could be installed (either because of system error or because no package exists)
  *   -2 - No upgrade package could be installed, but trigger a reboot so that we can retry.
  */
 
-int update_kubos(void)
+int update_kubos(bool upgrade)
 {
 	struct mmc *mmc;
 	disk_partition_t part_info = {};
@@ -221,6 +224,23 @@ int update_kubos(void)
 			else
 			{
 				debug("INFO: Upgrade completed successfully\n");
+
+				if (upgrade)
+				{
+					char *version = getenv(KUBOS_CURR_VERSION);
+					setenv(KUBOS_PREV_VERSION, version);
+					setenv(KUBOS_CURR_TRIED, "0");
+				}
+				else
+				{
+					if (getenv_yesno(KUBOS_CURR_TRIED) == 1)
+					{
+						setenv(KUBOS_PREV_VERSION, KUBOS_BASE);
+						setenv(KUBOS_CURR_TRIED, "1");
+					}
+				}
+
+				setenv(KUBOS_CURR_VERSION, file);
 			}
 		}
 	}

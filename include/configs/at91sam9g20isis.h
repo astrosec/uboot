@@ -118,6 +118,14 @@
 # error Unknown board
 #endif
 
+/* Upgrade/recovery */
+#ifdef CONFIG_UPDATE_KUBOS
+#define KUBOS_CURR_VERSION "kubos_curr_version"
+#define KUBOS_PREV_VERSION "kubos_prev_version"
+#define KUBOS_CURR_TRIED   "kubos_curr_tried"
+#define KUBOS_BASE         "kubos-base.itb"
+#endif
+
 /* NOR flash */
 #ifdef CONFIG_CMD_FLASH
 #define CONFIG_SYS_USE_NORFLASH
@@ -164,8 +172,8 @@
 #define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
-				"fatload mmc 0:5 0x21880000 zImage; " \
-				"bootz 0x21880000 - 0x21800000"
+				"fatload mmc 0:5 0x2187FF50 kernel.itb; " \
+				"bootm 0x2187FF50 - 0x21800000"
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 "				\
@@ -185,6 +193,9 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
+	KUBOS_PREV_VERSION "=" KUBOS_BASE "\0" \
+	KUBOS_CURR_TRIED "=0\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_NOR
 

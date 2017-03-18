@@ -723,6 +723,38 @@ err:
 	else if (ret == BOOTM_ERR_RESET)
 		do_reset(cmdtp, flag, argc, argv);
 
+#ifdef KUBOS_UPDATE
+	/*
+	 * If boot fails, do one of several things:
+	 * If this is the first time, try reloading the current version of KubOS Linux
+	 */
+	if (getenv_yesno(KUBOS_CURR_TRIED) == 0)
+	{
+		if (update_kubos(getenv(KUBOS_CURR_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		{
+			do_reset(cmdtp, flag, argc, argv);
+		}
+	}
+
+	/*
+	 * If that fails, or this is not our first time here, check if there's something
+	 * to rollback to and try to roll back to it.
+	 */
+	if (strcmp(getenv(KUBOS_CURR_VERSION), KUBOS_BASE) != 0)
+	{
+		if (update_kubos(getenv(KUBOS_PREV_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		{
+			do_reset(cmdtp, flag, argc, argv);
+		}
+	}
+
+	/*
+	 * If That fails, give up. We'll run the alternate boot command instead, if it's
+	 * available.
+	 */
+	ret = BOOTM_ERR_OTHER;
+#endif
+
 	return ret;
 }
 
