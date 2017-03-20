@@ -9,8 +9,8 @@
 #include <command.h>
 #include <net.h>
 
-#if !defined(CONFIG_UPDATE_TFTP)
-#error "CONFIG_UPDATE_TFTP required"
+#if !defined(CONFIG_UPDATE_TFTP) && !defined(CONFIG_DFU_TFTP)
+#error "CONFIG_UPDATE_TFTP or CONFIG_DFU_TFTP required"
 #endif
 
 static int do_fitupd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])

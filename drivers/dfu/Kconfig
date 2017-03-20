@@ -1,9 +1,18 @@
-menu "DFU support"
+menuconfig DFU
+    bool "DFU support"
+    
+if DFU
 
 config USB_FUNCTION_DFU
 	bool
+	
+config UPDATE_KUBOS
+	bool "Kubos kpack support"
+	help
+	  This option allows performing update of DFU-managed medium with data
+	  packaged in Kubos "kpack" files. 
 
-if CMD_DFU
+if CMD_DFU || UPDATE_KUBOS
 config DFU_TFTP
 	bool "DFU via TFTP"
 	help
@@ -22,6 +31,12 @@ config DFU_NAND
 	help
 	  This option enables using DFU to read and write to NAND based
 	  storage.
+	  
+config DFU_NOR
+	bool "NOR back end for DFU"
+	help
+	  This option enables using DFU to write to NOR based
+	  storage. (Read not currently supported)
 
 config DFU_RAM
 	bool "RAM back end for DFU"
@@ -35,4 +50,4 @@ config DFU_SF
 	  storage.
 
 endif
-endmenu
+endif

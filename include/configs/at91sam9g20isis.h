@@ -27,6 +27,7 @@
 #include <asm/hardware.h>
 
 #include <linux/sizes.h>
+#include <linux/kconfig.h>
 
 /*
  * CONFIG_SYS_TEXT_BASE - The starting address of U-Boot.
@@ -79,17 +80,11 @@
 #define CONFIG_BLUE_LED     AT91_PIN_PC15   /* Unused */
 
 /* File updates */
+#ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_USB_FUNCTION_DFU
-#define CONFIG_DFU_MMC
-#define CONFIG_DFU_NOR
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 2 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~1M) */
-#define CONFIG_UPDATE_KUBOS
-
-/*
- * Command line configuration.
- */
-#define CONFIG_CMD_NOR		1
+#endif
 
 /*
  * SDRAM: 1 bank, 32MB
@@ -124,8 +119,8 @@
 #endif
 
 /* NOR flash */
-#ifdef CONFIG_CMD_NOR
-#define CONFIG_SYS_USE_NORFLASH 1
+#ifdef CONFIG_CMD_FLASH
+#define CONFIG_SYS_USE_NORFLASH
 #endif
 
 /* MMC - Turned on in defconfig file*/
@@ -143,7 +138,6 @@
 
 /* EXT4 */
 #ifdef CONFIG_CMD_EXT4
-#define CONFIG_EXT4
 #define CONFIG_EXT4_WRITE
 #endif
 
@@ -161,14 +155,13 @@
 #define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END			0x20e00000
 
-#if defined(CONFIG_SYS_USE_NORFLASH)
-#define CONFIG_SMALL_SECT_SIZE   0x1000
-#define CONFIG_LARGE_SECT_SIZE   0x10000
+#ifdef CONFIG_SYS_USE_NORFLASH
+#define SMALL_SECT_SIZE   0x1000
+#define LARGE_SECT_SIZE   0x10000
 /* (bootstrap + u-boot + env +dtb in flash) + (linux in mmc) */
 #define CONFIG_ENV_IS_IN_FLASH	1
 #define CONFIG_ENV_OFFSET		0x70000 /* Must start on a sector boundary */
-#define CONFIG_ENV_SIZE		    CONFIG_LARGE_SECT_SIZE /* 1 sector = 65 kB */
-#define CONFIG_DTB_OFFSET       0x80000
+#define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x21880000 zImage; " \

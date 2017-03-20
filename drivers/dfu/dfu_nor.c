@@ -37,6 +37,12 @@ static int dfu_write_medium_nor(struct dfu_entity *dfu,
 {
 	int ret;
 
+	if (dfu == NULL || buf == NULL || len == NULL)
+	{
+		printf("dfu_write_medium_nor: Received NULL parameter\n");
+		return -1;
+	}
+
 	ulong start_addr = offset + dfu->data.nor.start + CONFIG_SYS_FLASH_BASE;
 	ulong end_addr = start_addr + *len - 1;
 
@@ -99,15 +105,24 @@ int dfu_fill_entity_nor(struct dfu_entity *dfu, char *devstr, char *s)
 {
 	char *st;
 
+	if (dfu == NULL || s == NULL)
+	{
+		printf("dfu_fill_entity_nor: Received NULL parameter\n");
+		return -1;
+	}
+
 	dfu->dev_type = DFU_DEV_NOR;
 
 	st = strsep(&s, " ");
-	if (!strcmp(st, "raw")) {
+	if (strcmp(st, "raw") == 0)
+	{
 		dfu->layout = DFU_RAW_ADDR;
 		dfu->data.nor.start = simple_strtoul(s, &s, 16);
 		s++;
 		dfu->data.nor.size = simple_strtoul(s, &s, 16);
-	} else {
+	}
+	else
+	{
 		printf("%s: Memory layout (%s) not supported!\n", __func__, st);
 		return -1;
 	}
