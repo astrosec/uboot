@@ -42,7 +42,7 @@
 #define KUBOS_RECOVER 0
 #define KUBOS_UPGRADE 1
 
-int update_kubos(void);
+int update_kubos(bool upgrade);
 
 #endif
 

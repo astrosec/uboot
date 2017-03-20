@@ -730,6 +730,7 @@ err:
 	 */
 	if (getenv_yesno(KUBOS_CURR_TRIED) == 0)
 	{
+		printf("Boot failed. Reloading current OS\n");
 		if (update_kubos(getenv(KUBOS_CURR_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
 		{
 			do_reset(cmdtp, flag, argc, argv);
@@ -739,9 +740,12 @@ err:
 	/*
 	 * If that fails, or this is not our first time here, check if there's something
 	 * to rollback to and try to roll back to it.
+	 * (If the current version is already the base version of KubOS, then there's
+	 * nothing to roll back to)
 	 */
 	if (strcmp(getenv(KUBOS_CURR_VERSION), KUBOS_BASE) != 0)
 	{
+		printf("Boot failed. Reloading previous OS\n");
 		if (update_kubos(getenv(KUBOS_PREV_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
 		{
 			do_reset(cmdtp, flag, argc, argv);
@@ -752,6 +756,7 @@ err:
 	 * If That fails, give up. We'll run the alternate boot command instead, if it's
 	 * available.
 	 */
+	printf("Boot failed. No rollback could be completed\n");
 	ret = BOOTM_ERR_OTHER;
 #endif
 
