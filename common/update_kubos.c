@@ -24,7 +24,6 @@
 
 #define UPGRADE_PART 7
 #define COUNT_ENVAR "kubos_updatecount"
-#define FILE_ENVAR  "kubos_updatefile"
 #define PART_ENVAR  "kubos_updatepart"
 #define LOAD_ENVAR  "kubos_loadaddr"
 
@@ -46,7 +45,7 @@ int update_kubos_count(void)
 
 		if (count > 1)
 		{
-			setenv(FILE_ENVAR, "bad");
+			setenv(KUBOS_UPDATE_FILE, "bad");
 			setenv(COUNT_ENVAR, "0");
 			ret = -1;
 		}
@@ -71,8 +70,8 @@ int update_kubos_count(void)
  * been copied into the upgrade partition, rather than via a USB/TFTP connection.
  *
  * Input:
- *    bool upgrade - Indicates whether we're installing a new package as part of an upgrade (true),
- *        or part of recovery (false).
+ *    kubosUpdateType upgrade - Indicates whether we're installing a new package as part of an upgrade,
+ *        or part of recovery.
  *
  * Returns:
  *    0 - An upgrade package was successfully installed
@@ -95,10 +94,10 @@ int update_kubos(bool upgrade)
 	/*
 	 * Get the name of the update file to load
 	 */
-	file = getenv(FILE_ENVAR);
+	file = getenv(KUBOS_UPDATE_FILE);
 	if (file == NULL)
 	{
-		debug("INFO: %s envar not found\n", FILE_ENVAR);
+		debug("INFO: %s envar not found\n", KUBOS_UPDATE_FILE);
 		return KUBOS_ERR_NO_REBOOT;
 	}
 	else if (!strcmp(file, "none") || !strcmp(file, "bad"))
@@ -251,7 +250,7 @@ int update_kubos(bool upgrade)
 	}
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
-	setenv(FILE_ENVAR, "none");
+	setenv(KUBOS_UPDATE_FILE, "none");
 	setenv(COUNT_ENVAR, "0");
 	saveenv();
 

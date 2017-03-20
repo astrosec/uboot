@@ -29,6 +29,7 @@
 #include <command.h>
 #include <bootm.h>
 #include <image.h>
+#include <kubos.h>
 
 #ifndef CONFIG_SYS_BOOTM_LEN
 /* use 8MByte as default max gunzip size */
@@ -723,7 +724,7 @@ err:
 	else if (ret == BOOTM_ERR_RESET)
 		do_reset(cmdtp, flag, argc, argv);
 
-#ifdef KUBOS_UPDATE
+#ifdef CONFIG_UPDATE_KUBOS
 	/*
 	 * If boot fails, do one of several things:
 	 * If this is the first time, try reloading the current version of KubOS Linux
@@ -731,7 +732,8 @@ err:
 	if (getenv_yesno(KUBOS_CURR_TRIED) == 0)
 	{
 		printf("Boot failed. Reloading current OS\n");
-		if (update_kubos(getenv(KUBOS_CURR_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		setenv(KUBOS_UPDATE_FILE, getenv(KUBOS_CURR_VERSION));
+		if (update_kubos(KUBOS_RECOVER) == KUBOS_OK_REBOOT)
 		{
 			do_reset(cmdtp, flag, argc, argv);
 		}
@@ -746,7 +748,8 @@ err:
 	if (strcmp(getenv(KUBOS_CURR_VERSION), KUBOS_BASE) != 0)
 	{
 		printf("Boot failed. Reloading previous OS\n");
-		if (update_kubos(getenv(KUBOS_PREV_VERSION), KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		setenv(KUBOS_UPDATE_FILE, getenv(KUBOS_PREV_VERSION));
+		if (update_kubos(KUBOS_RECOVER) == KUBOS_OK_REBOOT)
 		{
 			do_reset(cmdtp, flag, argc, argv);
 		}

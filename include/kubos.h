@@ -30,8 +30,9 @@
  *        be attempted again.
  */
 
-#ifndef __KUBOS_H__
-#define __KUBOS_H__
+#pragma once
+
+#include <stdbool.h>
 
 #ifdef CONFIG_UPDATE_KUBOS
 
@@ -45,5 +46,3 @@
 int update_kubos(bool upgrade);
 
 #endif
-
-#endif /* __KUBOS_H__ */

@@ -118,14 +118,6 @@
 # error Unknown board
 #endif
 
-/* Upgrade/recovery */
-#ifdef CONFIG_UPDATE_KUBOS
-#define KUBOS_CURR_VERSION "kubos_curr_version"
-#define KUBOS_PREV_VERSION "kubos_prev_version"
-#define KUBOS_CURR_TRIED   "kubos_curr_tried"
-#define KUBOS_BASE         "kubos-base.itb"
-#endif
-
 /* NOR flash */
 #ifdef CONFIG_CMD_FLASH
 #define CONFIG_SYS_USE_NORFLASH
@@ -158,6 +150,17 @@
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sam9g20"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 
+/* Update Definitions */
+#ifdef CONFIG_UPDATE_KUBOS
+
+#define KUBOS_CURR_VERSION "kubos_curr_version"
+#define KUBOS_PREV_VERSION "kubos_prev_version"
+#define KUBOS_CURR_TRIED   "kubos_curr_tried"
+#define KUBOS_BASE         "kubos-base.itb"
+#define KUBOS_UPDATE_FILE  "kubos_updatefile"
+
+#endif
+
 #define CONFIG_SYS_LOAD_ADDR			0x21880000	/* load address to load zImage to */
 
 #define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
@@ -179,6 +182,8 @@
 	"console=ttyS0,115200 "				\
 	"root=/dev/mmcblk0p6 rootwait"
 
+#ifdef CONFIG_UPDATE_KUBOS
+
 /* DFU Configuration */
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
@@ -198,6 +203,8 @@
 	KUBOS_CURR_TRIED "=0\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_NOR
+
+#endif /* CONFIG_UPDATE_KUBOS */
 
 #define CONFIG_SYS_FLASH_CFI			1
 #define CONFIG_FLASH_CFI_DRIVER			1
