@@ -663,7 +663,9 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 	/* From now on, we need the OS boot function */
 	if (ret)
-		return ret;
+	{
+		goto err;
+	}
 	boot_fn = bootm_os_get_boot_func(images->os.os);
 	need_boot_fn = states & (BOOTM_STATE_OS_CMDLINE |
 			BOOTM_STATE_OS_BD_T | BOOTM_STATE_OS_PREP |
@@ -760,7 +762,7 @@ err:
 	 * available.
 	 */
 	printf("Boot failed. No rollback could be completed\n");
-	ret = BOOTM_ERR_OTHER;
+
 #endif
 
 	return ret;

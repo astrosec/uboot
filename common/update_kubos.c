@@ -31,7 +31,7 @@ int update_kubos_count(void)
 {
 
 	ulong count;
-	int ret = -1;
+	int ret = 0;
 
 	char *val = getenv(COUNT_ENVAR);
 
@@ -124,7 +124,7 @@ int update_kubos(bool upgrade)
 	mmc = find_mmc_device(0);
 	if (!mmc)
 	{
-		error("Could not access SD card\n");
+		printf("ERROR: Could not access SD card\n");
 		return KUBOS_ERR_NO_REBOOT;
 
 	}
@@ -132,7 +132,7 @@ int update_kubos(bool upgrade)
 	ret = mmc_init(mmc);
 	if (ret)
 	{
-		error("Could not init SD card - %d\n", ret);
+		printf("ERROR: Could not init SD card - %d\n", ret);
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
@@ -150,7 +150,7 @@ int update_kubos(bool upgrade)
 
 	if (part_get_info(&mmc->block_dev, part, &part_info))
 	{
-		error("Could not mount upgrade partition.  No partition table\n");
+		printf("ERROR: Could not mount upgrade partition.  No partition table\n");
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
@@ -161,15 +161,15 @@ int update_kubos(bool upgrade)
 	ret = ext4fs_mount(0);
 	if (!ret) {
 
-		error("Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
+		printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
 	ret = ext4fs_exists(file);
 
-	if (update_kubos_count() != 0)
+	if (upgrade && update_kubos_count() != 0)
 	{
-		error("Number of update attempts exceeded. Abandoning update\n");
+		printf("ERROR: Number of update attempts exceeded. Abandoning update\n");
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
@@ -184,7 +184,7 @@ int update_kubos(bool upgrade)
 
 		if (ret < 0)
 		{
-			error("Couldn't read %s file - %d\n", file, ret);
+			printf("ERROR: Couldn't read %s file - %d\n", file, ret);
 			return KUBOS_ERR_REBOOT;
 		}
 		else
@@ -193,7 +193,7 @@ int update_kubos(bool upgrade)
 			{
 				if ((dfu_info = getenv("dfu_alt_info_nor")) == NULL)
 				{
-					error("Can't upgrade nor files, dfu_alt_info_nor not defined\n");
+					printf("ERROR: Can't upgrade nor files, dfu_alt_info_nor not defined\n");
 					return KUBOS_ERR_REBOOT;
 				}
 
@@ -206,7 +206,7 @@ int update_kubos(bool upgrade)
 			{
 				if ((dfu_info = getenv("dfu_alt_info_mmc")) == NULL)
 				{
-					error("Can't upgrade mmc files, dfu_alt_info_mmc not defined\n");
+					printf("ERROR: Can't upgrade mmc files, dfu_alt_info_mmc not defined\n");
 					return KUBOS_ERR_REBOOT;
 				}
 
@@ -217,7 +217,7 @@ int update_kubos(bool upgrade)
 
 			if (ret)
 			{
-				error("System upgrade failed - %d\n", ret);
+				printf("ERROR: System upgrade failed - %d\n", ret);
 				return KUBOS_ERR_REBOOT;
 			}
 			else
