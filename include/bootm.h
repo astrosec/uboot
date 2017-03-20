@@ -14,7 +14,7 @@
 #define BOOTM_ERR_RESET		(-1)
 #define BOOTM_ERR_OVERLAP		(-2)
 #define BOOTM_ERR_UNIMPLEMENTED	(-3)
-#define BOOTM_ERR_OTHER         (-4)
+#define BOOTM_ERR_OTHER			(-4)
 
 /*
  *  Continue booting an OS image; caller already has:

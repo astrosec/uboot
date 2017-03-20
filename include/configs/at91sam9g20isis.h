@@ -156,7 +156,7 @@
 #define KUBOS_CURR_VERSION "kubos_curr_version"
 #define KUBOS_PREV_VERSION "kubos_prev_version"
 #define KUBOS_CURR_TRIED   "kubos_curr_tried"
-#define KUBOS_BASE         "kubos-base.itb"
+#define KUBOS_BASE         "kpack-base.itb"
 #define KUBOS_UPDATE_FILE  "kubos_updatefile"
 
 #endif
@@ -175,7 +175,7 @@
 #define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
-				"fatload mmc 0:5 0x2187FF50 kernel.itb; " \
+				"fatload mmc 0:5 0x2187FF58 kernel; " \
 				"bootm 0x2187FF50 - 0x21800000"
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
@@ -187,7 +187,7 @@
 /* DFU Configuration */
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
-	"zImage fat 0 5;" 		\
+	"kernel fat 0 5;" 		\
 	"rootfs part 0 6\0"
 
 #define DFU_ALT_INFO_NOR \

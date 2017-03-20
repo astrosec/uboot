@@ -23,9 +23,10 @@
 #include <kubos.h>
 
 #define UPGRADE_PART 7
-#define COUNT_ENVAR "kubos_updatecount"
-#define PART_ENVAR  "kubos_updatepart"
-#define LOAD_ENVAR  "kubos_loadaddr"
+#define UPDATE_COUNT_ENVAR "kubos_updatecount"
+#define BOOT_COUNT_ENVAR   "kubos_bootcount"
+#define PART_ENVAR         "kubos_updatepart"
+#define LOAD_ENVAR         "kubos_loadaddr"
 
 int update_kubos_count(void)
 {
@@ -33,11 +34,11 @@ int update_kubos_count(void)
 	ulong count;
 	int ret = 0;
 
-	char *val = getenv(COUNT_ENVAR);
+	char *val = getenv(UPDATE_COUNT_ENVAR);
 
 	if (val == NULL)
 	{
-		setenv(COUNT_ENVAR, "1");
+		setenv(UPDATE_COUNT_ENVAR, "1");
 	}
 	else
 	{
@@ -46,13 +47,46 @@ int update_kubos_count(void)
 		if (count > 1)
 		{
 			setenv(KUBOS_UPDATE_FILE, "bad");
-			setenv(COUNT_ENVAR, "0");
+			setenv(UPDATE_COUNT_ENVAR, "0");
 			ret = -1;
 		}
 		else
 		{
 			count++;
-			setenv_ulong(COUNT_ENVAR, count);
+			setenv_ulong(UPDATE_COUNT_ENVAR, count);
+		}
+	}
+
+	saveenv();
+	return ret;
+}
+
+
+int boot_kubos_count(void)
+{
+
+	ulong count;
+	int ret = 0;
+
+	char *val = getenv(BOOT_COUNT_ENVAR);
+
+	if (val == NULL)
+	{
+		setenv(BOOT_COUNT_ENVAR, "1");
+	}
+	else
+	{
+		count = simple_strtoul(val, NULL, 10);
+
+		if (count > 1)
+		{
+			printf("ERROR: Failed to boot too many times, triggering recovery\n");
+			ret = -1;
+		}
+		else
+		{
+			count++;
+			setenv_ulong(BOOT_COUNT_ENVAR, count);
 		}
 	}
 
@@ -235,6 +269,9 @@ int update_kubos(bool upgrade)
 					if (getenv_yesno(KUBOS_CURR_TRIED) == 1)
 					{
 						setenv(KUBOS_PREV_VERSION, KUBOS_BASE);
+					}
+					else
+					{
 						setenv(KUBOS_CURR_TRIED, "1");
 					}
 				}
@@ -251,7 +288,7 @@ int update_kubos(bool upgrade)
 
 	/* Reset the updatefile name so that we resume usual boot after rebooting */
 	setenv(KUBOS_UPDATE_FILE, "none");
-	setenv(COUNT_ENVAR, "0");
+	setenv(UPDATE_COUNT_ENVAR, "0");
 	saveenv();
 
 	return KUBOS_OK_REBOOT;

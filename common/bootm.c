@@ -610,6 +610,15 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 	images->state |= states;
 
+#ifdef CONFIG_UPDATE_KUBOS
+	/* Bump the boot counter. If it's too high, we need to try and recover */
+	if(boot_kubos_count() != 0)
+	{
+		ret = BOOTM_ERR_OTHER;
+		goto err;
+	}
+#endif
+
 	/*
 	 * Work through the states and see how far we get. We stop on
 	 * any error.
@@ -739,6 +748,10 @@ err:
 		{
 			do_reset(cmdtp, flag, argc, argv);
 		}
+
+		setenv(KUBOS_CURR_TRIED, "1");
+		setenv(KUBOS_UPDATE_FILE, "none");
+		saveenv();
 	}
 
 	/*
@@ -755,6 +768,10 @@ err:
 		{
 			do_reset(cmdtp, flag, argc, argv);
 		}
+
+		setenv(KUBOS_CURR_VERSION, KUBOS_BASE);
+		setenv(KUBOS_UPDATE_FILE, "none");
+		saveenv;
 	}
 
 	/*
