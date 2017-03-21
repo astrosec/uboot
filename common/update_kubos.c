@@ -277,6 +277,7 @@ int update_kubos(bool upgrade)
 				}
 
 				setenv(KUBOS_CURR_VERSION, file);
+				setenv(BOOT_COUNT_ENVAR, "0");
 			}
 		}
 	}
