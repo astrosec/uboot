@@ -176,7 +176,7 @@
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x2187FF58 kernel; " \
-				"bootm 0x2187FF50 - 0x21800000"
+				"bootm 0x2187FF58 - 0x21800000"
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 "				\

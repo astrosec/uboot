@@ -771,7 +771,7 @@ err:
 
 		setenv(KUBOS_CURR_VERSION, KUBOS_BASE);
 		setenv(KUBOS_UPDATE_FILE, "none");
-		saveenv;
+		saveenv();
 	}
 
 	/*
