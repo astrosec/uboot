@@ -12,6 +12,7 @@
 #include <dm.h>
 #include <part.h>
 #include <div64.h>
+#include <watchdog.h>
 #include <linux/math64.h>
 #include "mmc_private.h"
 
@@ -205,6 +206,11 @@ ulong mmc_bwrite(struct blk_desc *block_dev, lbaint_t start, lbaint_t blkcnt,
 		return 0;
 
 	do {
+#ifdef CONFIG_AT91SAM9G20ISIS
+		WATCHDOG_RESET_COUNT(10);
+#else
+		WATCHDOG_RESET();
+#endif
 		cur = (blocks_todo > mmc->cfg->b_max) ?
 			mmc->cfg->b_max : blocks_todo;
 		if (mmc_write_blocks(mmc, start, cur, src) != cur)
