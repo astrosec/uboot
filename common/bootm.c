@@ -776,10 +776,11 @@ err:
 	}
 
 	/*
-	 * If That fails, give up. We'll run the alternate boot command instead, if it's
-	 * available.
+	 * If That fails, give up. We'll reset the system so that the bootlimit checker
+	 * can track the failure.
 	 */
 	printf("Boot failed. No rollback could be completed\n");
+	do_reset(cmdtp, flag, argc, argv);
 
 #endif
 

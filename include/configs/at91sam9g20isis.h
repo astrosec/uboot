@@ -200,8 +200,8 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=cp.b 0x100F0000 0x21800000 0x10000; " \
-				"go 0x21800000\0" \
+	"altbootcmd=setenv upgrade_available 0; saveenv; "\
+				"cp.b 0x100F0000 0x21800000 0x10000; go 0x21800000\0" \
 	"upgrade_available=1\0" \
     "bootlimit=3\0" \
 	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
@@ -213,8 +213,8 @@
 #else
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=cp.b 0x100F0000 0x21800000 0x10000; " \
-				"go 0x21800000\0" \
+	"altbootcmd=setenv upgrade_available 0; saveenv; "\
+				"cp.b 0x100F0000 0x21800000 0x10000; go 0x21800000\0" \
 	"upgrade_available=1\0" \
     "bootlimit=1\0" \
 

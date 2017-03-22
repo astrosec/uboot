@@ -31,6 +31,7 @@ int update_kubos_count(void)
 {
 
 	ulong count;
+	ulong bootcount;
 	int ret = 0;
 
 	char *val = getenv(UPDATE_COUNT_ENVAR);
@@ -53,6 +54,11 @@ int update_kubos_count(void)
 		{
 			count++;
 			setenv_ulong(UPDATE_COUNT_ENVAR, count);
+
+			/* Don't let our update attempts count against our boot attempt limit */
+			bootcount = bootcount_load();
+			bootcount--;
+			bootcount_store(bootcount);
 		}
 	}
 
@@ -243,7 +249,7 @@ int update_kubos(bool upgrade)
 				}
 
 				setenv(KUBOS_CURR_VERSION, file);
-				setenv("bootcount", "0");
+				bootcount_store(0);
 			}
 		}
 	}
