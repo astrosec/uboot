@@ -200,7 +200,7 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv upgrade_available 0; saveenv; "\
+	"altbootcmd=setenv upgrade_available 0; setenv bootcmd; saveenv; "\
 				"cp.b 0x100B0000 0x20000000 0x50000; go 0x20000000\0" \
 	"upgrade_available=1\0" \
     "bootlimit=3\0" \
@@ -213,7 +213,7 @@
 #else
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv upgrade_available 0; saveenv; "\
+	"altbootcmd=setenv upgrade_available 0; setenv bootcmd; saveenv; "\
 				"cp.b 0x100B0000 0x20000000 0x50000; go 0x20000000\0" \
 	"upgrade_available=1\0" \
     "bootlimit=1\0" \
