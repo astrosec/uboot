@@ -777,10 +777,13 @@ err:
 
 	/*
 	 * If That fails, give up. We'll reset the system so that the bootlimit checker
-	 * can track the failure.
+	 * can track the failure and run the altbootcmd instead, if it's available.
 	 */
 	printf("Boot failed. No rollback could be completed\n");
-	do_reset(cmdtp, flag, argc, argv);
+	if (getenv_yesno("upgrade_available"))
+	{
+		do_reset(cmdtp, flag, argc, argv);
+	}
 
 #endif
 
