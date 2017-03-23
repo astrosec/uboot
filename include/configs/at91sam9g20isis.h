@@ -150,6 +150,17 @@
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sam9g20"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 
+/* Update Definitions */
+#ifdef CONFIG_UPDATE_KUBOS
+
+#define KUBOS_CURR_VERSION "kubos_curr_version"
+#define KUBOS_PREV_VERSION "kubos_prev_version"
+#define KUBOS_CURR_TRIED   "kubos_curr_tried"
+#define KUBOS_BASE         "kpack-base.itb"
+#define KUBOS_UPDATE_FILE  "kubos_updatefile"
+
+#endif
+
 #define CONFIG_SYS_LOAD_ADDR			0x21880000	/* load address to load zImage to */
 
 #define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
@@ -164,17 +175,19 @@
 #define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
-				"fatload mmc 0:5 0x21880000 zImage; " \
-				"bootz 0x21880000 - 0x21800000"
+				"fatload mmc 0:5 0x2187FF58 kernel; " \
+				"bootm 0x2187FF58 - 0x21800000"
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 "				\
 	"root=/dev/mmcblk0p6 rootwait"
 
+#ifdef CONFIG_UPDATE_KUBOS
+
 /* DFU Configuration */
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
-	"zImage fat 0 5;" 		\
+	"kernel fat 0 5;" 		\
 	"rootfs part 0 6\0"
 
 #define DFU_ALT_INFO_NOR \
@@ -185,8 +198,13 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
+	KUBOS_PREV_VERSION "=" KUBOS_BASE "\0" \
+	KUBOS_CURR_TRIED "=0\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_NOR
+
+#endif /* CONFIG_UPDATE_KUBOS */
 
 #define CONFIG_SYS_FLASH_CFI			1
 #define CONFIG_FLASH_CFI_DRIVER			1

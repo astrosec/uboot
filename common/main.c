@@ -61,7 +61,7 @@ void main_loop(void)
 #endif /* CONFIG_UPDATE_TFTP */
 
 #if defined(CONFIG_UPDATE_KUBOS)
-	if (update_kubos() != ERR_NO_REBOOT)
+	if (update_kubos(KUBOS_UPGRADE) != KUBOS_ERR_NO_REBOOT)
 	{
 		/* 
 		 * If everything went well, we want to reboot into the new

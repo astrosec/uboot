@@ -29,6 +29,7 @@
 #include <command.h>
 #include <bootm.h>
 #include <image.h>
+#include <kubos.h>
 
 #ifndef CONFIG_SYS_BOOTM_LEN
 /* use 8MByte as default max gunzip size */
@@ -609,6 +610,15 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 	images->state |= states;
 
+#ifdef CONFIG_UPDATE_KUBOS
+	/* Bump the boot counter. If it's too high, we need to try and recover */
+	if(boot_kubos_count() != 0)
+	{
+		ret = BOOTM_ERR_OTHER;
+		goto err;
+	}
+#endif
+
 	/*
 	 * Work through the states and see how far we get. We stop on
 	 * any error.
@@ -662,7 +672,9 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 	/* From now on, we need the OS boot function */
 	if (ret)
-		return ret;
+	{
+		goto err;
+	}
 	boot_fn = bootm_os_get_boot_func(images->os.os);
 	need_boot_fn = states & (BOOTM_STATE_OS_CMDLINE |
 			BOOTM_STATE_OS_BD_T | BOOTM_STATE_OS_PREP |
@@ -722,6 +734,53 @@ err:
 		bootstage_error(BOOTSTAGE_ID_DECOMP_UNIMPL);
 	else if (ret == BOOTM_ERR_RESET)
 		do_reset(cmdtp, flag, argc, argv);
+
+#ifdef CONFIG_UPDATE_KUBOS
+	/*
+	 * If boot fails, do one of several things:
+	 * If this is the first time, try reloading the current version of KubOS Linux
+	 */
+	if (getenv_yesno(KUBOS_CURR_TRIED) == 0)
+	{
+		printf("Boot failed. Reloading current OS\n");
+		setenv(KUBOS_UPDATE_FILE, getenv(KUBOS_CURR_VERSION));
+		if (update_kubos(KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		{
+			do_reset(cmdtp, flag, argc, argv);
+		}
+
+		setenv(KUBOS_CURR_TRIED, "1");
+		setenv(KUBOS_UPDATE_FILE, "none");
+		saveenv();
+	}
+
+	/*
+	 * If that fails, or this is not our first time here, check if there's something
+	 * to rollback to and try to roll back to it.
+	 * (If the current version is already the base version of KubOS, then there's
+	 * nothing to roll back to)
+	 */
+	if (strcmp(getenv(KUBOS_CURR_VERSION), KUBOS_BASE) != 0)
+	{
+		printf("Boot failed. Reloading previous OS\n");
+		setenv(KUBOS_UPDATE_FILE, getenv(KUBOS_PREV_VERSION));
+		if (update_kubos(KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		{
+			do_reset(cmdtp, flag, argc, argv);
+		}
+
+		setenv(KUBOS_CURR_VERSION, KUBOS_BASE);
+		setenv(KUBOS_UPDATE_FILE, "none");
+		saveenv();
+	}
+
+	/*
+	 * If That fails, give up. We'll run the alternate boot command instead, if it's
+	 * available.
+	 */
+	printf("Boot failed. No rollback could be completed\n");
+
+#endif
 
 	return ret;
 }

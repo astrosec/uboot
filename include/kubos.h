@@ -30,17 +30,20 @@
  *        be attempted again.
  */
 
-#ifndef __KUBOS_H__
-#define __KUBOS_H__
+#pragma once
+
+#include <stdbool.h>
 
 #ifdef CONFIG_UPDATE_KUBOS
 
-#define OK_REBOOT      0
-#define ERR_NO_REBOOT -1
-#define ERR_REBOOT    -2
+#define KUBOS_OK_REBOOT      0
+#define KUBOS_ERR_NO_REBOOT -1
+#define KUBOS_ERR_REBOOT    -2
 
-int update_kubos(void);
+#define KUBOS_RECOVER 0
+#define KUBOS_UPGRADE 1
+
+int update_kubos(bool upgrade);
+int boot_kubos_count(void);
 
 #endif
-
-#endif /* __KUBOS_H__ */

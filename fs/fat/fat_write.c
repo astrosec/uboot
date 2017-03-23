@@ -10,6 +10,7 @@
 #include <command.h>
 #include <config.h>
 #include <fat.h>
+#include <watchdog.h>
 #include <asm/byteorder.h>
 #include <part.h>
 #include <linux/ctype.h>
@@ -726,6 +727,13 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 	do {
 		/* search for consecutive clusters */
 		while (actsize < filesize) {
+
+#ifdef CONFIG_AT91SAM9G20ISIS
+			WATCHDOG_RESET_COUNT(500);
+#else
+			WATCHDOG_RESET();
+#endif
+
 			newclust = determine_fatent(mydata, endclust);
 
 			if ((newclust - 1) != endclust)
