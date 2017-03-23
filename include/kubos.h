@@ -44,6 +44,5 @@
 #define KUBOS_UPGRADE 1
 
 int update_kubos(bool upgrade);
-int boot_kubos_count(void);
 
 #endif

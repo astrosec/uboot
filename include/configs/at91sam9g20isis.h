@@ -57,6 +57,8 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_BOOTCOUNT_LIMIT
+#define CONFIG_BOOTCOUNT_ENV
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
@@ -198,11 +200,23 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"altbootcmd=setenv upgrade_available 0; setenv bootcmd; saveenv; "\
+				"cp.b 0x100B0000 0x20000000 0x50000; go 0x20000000\0" \
+	"upgrade_available=1\0" \
+    "bootlimit=3\0" \
 	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
 	KUBOS_PREV_VERSION "=" KUBOS_BASE "\0" \
 	KUBOS_CURR_TRIED "=0\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_NOR
+
+#else
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"altbootcmd=setenv upgrade_available 0; setenv bootcmd; saveenv; "\
+				"cp.b 0x100B0000 0x20000000 0x50000; go 0x20000000\0" \
+	"upgrade_available=1\0" \
+    "bootlimit=1\0" \
 
 #endif /* CONFIG_UPDATE_KUBOS */
 

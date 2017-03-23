@@ -611,10 +611,11 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	images->state |= states;
 
 #ifdef CONFIG_UPDATE_KUBOS
-	/* Bump the boot counter. If it's too high, we need to try and recover */
-	if(boot_kubos_count() != 0)
+	/* Check the boot counter. If it's too high, we need to try and recover */
+	if(bootcount_load() > 1)
 	{
 		ret = BOOTM_ERR_OTHER;
+		printf("ERROR: Failed to boot too many times, triggering recovery\n");
 		goto err;
 	}
 #endif
@@ -775,10 +776,14 @@ err:
 	}
 
 	/*
-	 * If That fails, give up. We'll run the alternate boot command instead, if it's
-	 * available.
+	 * If That fails, give up. We'll reset the system so that the bootlimit checker
+	 * can track the failure and run the altbootcmd instead, if it's available.
 	 */
 	printf("Boot failed. No rollback could be completed\n");
+	if (getenv_yesno("upgrade_available"))
+	{
+		do_reset(cmdtp, flag, argc, argv);
+	}
 
 #endif
 
