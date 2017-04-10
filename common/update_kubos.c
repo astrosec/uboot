@@ -232,9 +232,16 @@ int update_kubos(bool upgrade)
 
 				if (upgrade)
 				{
-					char *version = getenv(KUBOS_CURR_VERSION);
-					setenv(KUBOS_PREV_VERSION, version);
-					setenv(KUBOS_CURR_TRIED, "0");
+					/*
+					 * Only mark that we're using a new version of KubOS Linux if we're doing
+					 * a regular upgrade (vs upgrading NOR flash files)
+					 */
+					if (strstr(file,"nor") == NULL)
+					{
+						char *version = getenv(KUBOS_CURR_VERSION);
+						setenv(KUBOS_PREV_VERSION, version);
+						setenv(KUBOS_CURR_TRIED, "0");
+					}
 				}
 				else
 				{
