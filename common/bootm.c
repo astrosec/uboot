@@ -757,7 +757,8 @@ err:
 
 	/*
 	 * If that fails, or this is not our first time here, check if there's something
-	 * to rollback to and try to roll back to it.
+	 * to rollback to and try to roll back to it. This can be a) a previous version,
+	 * and/or b) the base KubOS version.
 	 * (If the current version is already the base version of KubOS, then there's
 	 * nothing to roll back to)
 	 */
@@ -770,6 +771,14 @@ err:
 			do_reset(cmdtp, flag, argc, argv);
 		}
 
+		printf("Boot failed. Reloading base OS\n");
+		setenv(KUBOS_UPDATE_FILE, KUBOS_BASE);
+		if (update_kubos(KUBOS_RECOVER) == KUBOS_OK_REBOOT)
+		{
+			do_reset(cmdtp, flag, argc, argv);
+		}
+
+		/* Save that we tried the base version so that we won't try again later */
 		setenv(KUBOS_CURR_VERSION, KUBOS_BASE);
 		setenv(KUBOS_UPDATE_FILE, "none");
 		saveenv();
