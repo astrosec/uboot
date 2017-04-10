@@ -612,7 +612,7 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 #ifdef CONFIG_UPDATE_KUBOS
 	/* Check the boot counter. If it's too high, we need to try and recover */
-	if(bootcount_load() > 1)
+	if(bootcount_load() > 2)
 	{
 		ret = BOOTM_ERR_OTHER;
 		printf("ERROR: Failed to boot too many times, triggering recovery\n");
