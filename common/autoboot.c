@@ -298,9 +298,6 @@ const char *bootdelay_process(void)
 
 #ifdef CONFIG_BOOTCOUNT_LIMIT
 	bootcount = bootcount_load();
-	bootcount++;
-	bootcount_store(bootcount);
-	setenv_ulong("bootcount", bootcount);
 	bootlimit = getenv_ulong("bootlimit", 10, 0);
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
 
@@ -347,6 +344,15 @@ void autoboot_command(const char *s)
 #if defined(CONFIG_AUTOBOOT_KEYED) && !defined(CONFIG_AUTOBOOT_KEYED_CTRLC)
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
 #endif
+
+/* Save the new bootcount if we're actually going to try to boot (vs going to U-Boot shell) */
+#ifdef CONFIG_BOOTCOUNT_LIMIT
+		unsigned long bootcount = 0;
+
+		bootcount = bootcount_load();
+		bootcount++;
+		bootcount_store(bootcount);
+#endif /* CONFIG_BOOTCOUNT_LIMIT */
 
 		run_command_list(s, -1, 0);
 
