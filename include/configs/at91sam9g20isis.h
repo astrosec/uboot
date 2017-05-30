@@ -200,8 +200,7 @@
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv; "\
-				"cp.b 0x10090000 0x20000000 0x70000; go 0x20000000\0" \
+	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv\0" \
 	"recovery_available=1\0" \
     "bootlimit=3\0" \
 	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
@@ -213,8 +212,7 @@
 #else
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv; "\
-				"cp.b 0x10090000 0x20000000 0x70000; go 0x20000000\0" \
+	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv\0" \
 	"recovery_available=1\0" \
     "bootlimit=1\0" \
 
