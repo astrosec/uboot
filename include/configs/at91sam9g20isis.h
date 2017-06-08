@@ -143,10 +143,10 @@
 #define CONFIG_EXT4_WRITE
 
 /* u-boot env in sd/mmc card */
-#define CONFIG_ENV_IS_IN_FAT    1
-#define FAT_ENV_INTERFACE       "mmc"
-#define FAT_ENV_DEVICE_AND_PART "0:1"
-#define FAT_ENV_FILE            "/home/system/etc/uboot.env"
+#define CONFIG_ENV_IS_IN_EXT4    1
+#define EXT4_ENV_INTERFACE       "mmc"
+#define EXT4_ENV_DEVICE_AND_PART "0:1"
+#define EXT4_ENV_FILE            "/system/etc/uboot.env"
 #define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
 #endif
 
