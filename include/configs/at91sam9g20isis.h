@@ -136,6 +136,11 @@
 #ifdef CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define CONFIG_FAT_WRITE
+#endif
+
+/* EXT4 */
+#ifdef CONFIG_CMD_EXT4
+#define CONFIG_EXT4_WRITE
 
 /* u-boot env in sd/mmc card */
 #define CONFIG_ENV_IS_IN_FAT    1
@@ -143,11 +148,6 @@
 #define FAT_ENV_DEVICE_AND_PART "0:1"
 #define FAT_ENV_FILE            "/home/system/etc/uboot.env"
 #define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
-#endif
-
-/* EXT4 */
-#ifdef CONFIG_CMD_EXT4
-#define CONFIG_EXT4_WRITE
 #endif
 
 /* USB */
