@@ -136,6 +136,13 @@
 #ifdef CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define CONFIG_FAT_WRITE
+
+/* u-boot env in sd/mmc card */
+#define CONFIG_ENV_IS_IN_FAT    1
+#define FAT_ENV_INTERFACE	    "mmc"
+#define FAT_ENV_DEVICE_AND_PART	"0:5"
+#define FAT_ENV_FILE		    "uboot.env"
+#define CONFIG_ENV_SIZE		    1 * 1024 //Assume sector size of 1024
 #endif
 
 /* EXT4 */
@@ -171,10 +178,7 @@
 #ifdef CONFIG_SYS_USE_NORFLASH
 #define SMALL_SECT_SIZE   0x1000
 #define LARGE_SECT_SIZE   0x10000
-/* (bootstrap + u-boot + env +dtb in flash) + (linux in mmc) */
-#define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_OFFSET		0x70000 /* Must start on a sector boundary */
-#define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
+/* (bootstrap + u-boot + dtb (+ altOS) in flash) + (env + linux in mmc) */
 /* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
 #define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x2187FF58 kernel; " \
