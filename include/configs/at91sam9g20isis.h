@@ -140,9 +140,9 @@
 /* u-boot env in sd/mmc card */
 #define CONFIG_ENV_IS_IN_FAT    1
 #define FAT_ENV_INTERFACE	    "mmc"
-#define FAT_ENV_DEVICE_AND_PART	"0:5"
-#define FAT_ENV_FILE		    "uboot.env"
-#define CONFIG_ENV_SIZE		    1 * 1024 //Assume sector size of 1024
+#define FAT_ENV_DEVICE_AND_PART "0:5"
+#define FAT_ENV_FILE            "uboot.env"
+#define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
 #endif
 
 /* EXT4 */
