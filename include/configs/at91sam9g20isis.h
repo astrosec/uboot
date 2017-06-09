@@ -179,8 +179,8 @@
 #define SMALL_SECT_SIZE   0x1000
 #define LARGE_SECT_SIZE   0x10000
 /* (bootstrap + u-boot + dtb (+ altOS) in flash) + (env + linux in mmc) */
-/* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
-#define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
+/* Copy .dtb file (NORFLASH @ 0x70000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
+#define CONFIG_BOOTCOMMAND	"cp.b 0x10070000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x2187FF58 kernel; " \
 				"bootm 0x2187FF58 - 0x21800000"
 /* Define the initial console connection and rootfs location */
@@ -199,8 +199,7 @@
 #define DFU_ALT_INFO_NOR \
 	"dfu_alt_info_nor="		    \
 	"uboot raw 0xA000 0x56000;" \
-	"uboot-env raw 0x70000 0x10000;" \
-	"dtb raw 0x80000 0x10000" \
+	"dtb raw 0x70000 0x10000" \
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
