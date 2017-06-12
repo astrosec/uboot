@@ -141,6 +141,13 @@
 /* EXT4 */
 #ifdef CONFIG_CMD_EXT4
 #define CONFIG_EXT4_WRITE
+
+/* u-boot env in sd/mmc card */
+#define CONFIG_ENV_IS_IN_EXT4    1
+#define EXT4_ENV_INTERFACE       "mmc"
+#define EXT4_ENV_DEVICE_AND_PART "0:1"
+#define EXT4_ENV_FILE            "/system/etc/uboot.env"
+#define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
 #endif
 
 /* USB */
@@ -171,12 +178,9 @@
 #ifdef CONFIG_SYS_USE_NORFLASH
 #define SMALL_SECT_SIZE   0x1000
 #define LARGE_SECT_SIZE   0x10000
-/* (bootstrap + u-boot + env +dtb in flash) + (linux in mmc) */
-#define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_OFFSET		0x70000 /* Must start on a sector boundary */
-#define CONFIG_ENV_SIZE		    LARGE_SECT_SIZE /* 1 sector = 65 kB */
-/* Copy .dtb file (NORFLASH @ 0x80000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
-#define CONFIG_BOOTCOMMAND	"cp.b 0x10080000 0x21800000 0x5000; " \
+/* (bootstrap + u-boot + dtb (+ altOS) in flash) + (env + linux in mmc) */
+/* Copy .dtb file (NORFLASH @ 0x70000, size = 0x5000) and kernel (SD card, partition 5) into SDRAM, then boot them */
+#define CONFIG_BOOTCOMMAND	"cp.b 0x10070000 0x21800000 0x5000; " \
 				"fatload mmc 0:5 0x2187FF58 kernel; " \
 				"bootm 0x2187FF58 - 0x21800000"
 /* Define the initial console connection and rootfs location */
@@ -195,8 +199,7 @@
 #define DFU_ALT_INFO_NOR \
 	"dfu_alt_info_nor="		    \
 	"uboot raw 0xA000 0x56000;" \
-	"uboot-env raw 0x70000 0x10000;" \
-	"dtb raw 0x80000 0x10000" \
+	"dtb raw 0x70000 0x10000" \
 	"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
