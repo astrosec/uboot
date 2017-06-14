@@ -27,6 +27,7 @@
 #include <linux/stat.h>
 #include <div64.h>
 #include "ext4_common.h"
+#include <watchdog.h>
 
 static inline void ext4fs_sb_free_inodes_inc(struct ext2_sblock *sb)
 {
