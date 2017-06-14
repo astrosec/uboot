@@ -55,12 +55,14 @@ int update_kubos_count(void)
 			count++;
 			setenv_ulong(UPDATE_COUNT_ENVAR, count);
 
-			/* Don't let our update attempts count against our boot attempt limit */
-			bootcount = bootcount_load();
-			bootcount--;
-			bootcount_store(bootcount);
+
 		}
 	}
+
+	/* Don't let our update attempts count against our boot attempt limit */
+	bootcount = bootcount_load();
+	bootcount--;
+	bootcount_store(bootcount);
 
 	saveenv();
 	return ret;
