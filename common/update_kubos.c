@@ -185,6 +185,8 @@ int update_kubos(bool upgrade)
 		 * update_kubos_count will cause the file system to be closed,
 		 * so we need to remount it.
 		 */
+
+		ext4fs_set_blk_dev(&mmc->block_dev, &part_info);
 		ret = ext4fs_mount(0);
 		if (!ret) {
 
