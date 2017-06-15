@@ -54,15 +54,8 @@ int update_kubos_count(void)
 		{
 			count++;
 			setenv_ulong(UPDATE_COUNT_ENVAR, count);
-
-
 		}
 	}
-
-	/* Don't let our update attempts count against our boot attempt limit */
-	bootcount = bootcount_load();
-	bootcount--;
-	bootcount_store(bootcount);
 
 	saveenv();
 	return ret;
@@ -188,6 +181,17 @@ int update_kubos(bool upgrade)
 	{
 		debug("INFO: Found file to upgrade - %s\n", file);
 
+		/*
+		 * update_kubos_count will cause the file system to be closed,
+		 * so we need to remount it.
+		 */
+		ret = ext4fs_mount(0);
+		if (!ret) {
+
+			printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
+			return KUBOS_ERR_NO_REBOOT;
+		}
+
 		ret = ext4_read_file(file, (void *)addr, 0, 0, &actlen);
 
 		if (ret < 0)
@@ -264,7 +268,7 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		debug("INFO: Upgrade file not found '%s'\n", file);
+		printf("ERROR: Upgrade file not found '%s'\n", file);
 		return KUBOS_ERR_REBOOT;
 	}
 
