@@ -188,7 +188,7 @@ int update_kubos(bool upgrade)
 		ret = ext4fs_mount(0);
 		if (!ret) {
 
-			printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
+			printf("ERROR: Could not re-mount upgrade partition. ext4fs mount err - %d\n", ret);
 			return KUBOS_ERR_NO_REBOOT;
 		}
 
