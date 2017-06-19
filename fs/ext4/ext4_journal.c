@@ -426,7 +426,7 @@ int ext4fs_check_journal_state(int recovery_flag)
 
 	if (le32_to_cpu(fs->sb->feature_incompat) & EXT3_FEATURE_INCOMPAT_RECOVER) {
 		if (recovery_flag == RECOVER)
-			printf("Recovery required\n");
+			debug("Recovery required\n");
 	} else {
 		if (recovery_flag == RECOVER)
 			debug("File System is consistent\n");
