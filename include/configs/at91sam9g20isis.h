@@ -85,7 +85,7 @@
 #ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_USB_FUNCTION_DFU
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
-#define CONFIG_SYS_DFU_MAX_FILE_SIZE 3 * SZ_1M   /* Maximum size for a single file.  Currently zImage + rootfs */
+#define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~2.5M) */
 #endif
 
 /*
