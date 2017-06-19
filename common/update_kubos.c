@@ -137,6 +137,13 @@ int update_kubos(bool upgrade)
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
+	/* Increase the upgrade attempt count */
+	if (upgrade && update_kubos_count() != 0)
+	{
+		printf("ERROR: Number of update attempts exceeded. Abandoning update\n");
+		return KUBOS_ERR_NO_REBOOT;
+	}
+
 	/*
 	 * Get and mount the upgrade partition
 	 */
@@ -161,18 +168,11 @@ int update_kubos(bool upgrade)
 
 	ret = ext4fs_mount(0);
 	if (!ret) {
-
 		printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
 	ret = ext4fs_exists(file);
-
-	if (upgrade && update_kubos_count() != 0)
-	{
-		printf("ERROR: Number of update attempts exceeded. Abandoning update\n");
-		return KUBOS_ERR_NO_REBOOT;
-	}
 
 	/*
 	 * Upgrade file found, call the existing DFU utility
@@ -180,19 +180,6 @@ int update_kubos(bool upgrade)
 	if (ret)
 	{
 		debug("INFO: Found file to upgrade - %s\n", file);
-
-		/*
-		 * update_kubos_count will cause the file system to be closed,
-		 * so we need to remount it.
-		 */
-
-		ext4fs_set_blk_dev(&mmc->block_dev, &part_info);
-		ret = ext4fs_mount(0);
-		if (!ret) {
-
-			printf("ERROR: Could not re-mount upgrade partition. ext4fs mount err - %d\n", ret);
-			return KUBOS_ERR_NO_REBOOT;
-		}
 
 		ret = ext4_read_file(file, (void *)addr, 0, 0, &actlen);
 
