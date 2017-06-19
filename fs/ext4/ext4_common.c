@@ -889,7 +889,7 @@ static int unlink_filename(char *filename, unsigned int blknr)
 		if (dir->inode && (strlen(filename) == dir->namelen) &&
 		    (strncmp(ptr + sizeof(struct ext2_dirent),
 			     filename, dir->namelen) == 0)) {
-			printf("file found, deleting\n");
+			debug("file found, deleting\n");
 			inodeno = le32_to_cpu(dir->inode);
 			if (previous_dir) {
 				uint16_t new_len;

@@ -83,7 +83,7 @@ int saveenv(void)
 		return 1;
 	}
 
-	puts("done\n");
+	debug("done\n");
 	return 0;
 }
 #endif /* CONFIG_CMD_SAVEENV */
