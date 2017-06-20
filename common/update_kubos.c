@@ -54,11 +54,6 @@ int update_kubos_count(void)
 		{
 			count++;
 			setenv_ulong(UPDATE_COUNT_ENVAR, count);
-
-			/* Don't let our update attempts count against our boot attempt limit */
-			bootcount = bootcount_load();
-			bootcount--;
-			bootcount_store(bootcount);
 		}
 	}
 
@@ -142,6 +137,13 @@ int update_kubos(bool upgrade)
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
+	/* Increase the upgrade attempt count */
+	if (upgrade && update_kubos_count() != 0)
+	{
+		printf("ERROR: Number of update attempts exceeded. Abandoning update\n");
+		return KUBOS_ERR_NO_REBOOT;
+	}
+
 	/*
 	 * Get and mount the upgrade partition
 	 */
@@ -166,18 +168,11 @@ int update_kubos(bool upgrade)
 
 	ret = ext4fs_mount(0);
 	if (!ret) {
-
 		printf("ERROR: Could not mount upgrade partition. ext4fs mount err - %d\n", ret);
 		return KUBOS_ERR_NO_REBOOT;
 	}
 
 	ret = ext4fs_exists(file);
-
-	if (upgrade && update_kubos_count() != 0)
-	{
-		printf("ERROR: Number of update attempts exceeded. Abandoning update\n");
-		return KUBOS_ERR_NO_REBOOT;
-	}
 
 	/*
 	 * Upgrade file found, call the existing DFU utility
@@ -262,7 +257,7 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		debug("INFO: Upgrade file not found '%s'\n", file);
+		printf("ERROR: Upgrade file not found '%s'\n", file);
 		return KUBOS_ERR_REBOOT;
 	}
 

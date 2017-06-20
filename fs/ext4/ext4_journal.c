@@ -216,11 +216,11 @@ void print_revoke_blks(char *revk_blk)
 	header = (struct journal_revoke_header_t *) revk_blk;
 	offset = sizeof(struct journal_revoke_header_t);
 	max = be32_to_cpu(header->r_count);
-	printf("total bytes %d\n", max);
+	debug("total bytes %d\n", max);
 
 	while (offset < max) {
 		blocknr = be32_to_cpu(*((__be32 *)(revk_blk + offset)));
-		printf("revoke blknr is %ld\n", blocknr);
+		debug("revoke blknr is %ld\n", blocknr);
 		offset += 4;
 	}
 }
@@ -386,9 +386,9 @@ fail:
 void print_jrnl_status(int recovery_flag)
 {
 	if (recovery_flag == RECOVER)
-		printf("Journal Recovery Completed\n");
+		debug("Journal Recovery Completed\n");
 	else
-		printf("Journal Scan Completed\n");
+		debug("Journal Scan Completed\n");
 }
 
 int ext4fs_check_journal_state(int recovery_flag)
@@ -426,10 +426,10 @@ int ext4fs_check_journal_state(int recovery_flag)
 
 	if (le32_to_cpu(fs->sb->feature_incompat) & EXT3_FEATURE_INCOMPAT_RECOVER) {
 		if (recovery_flag == RECOVER)
-			printf("Recovery required\n");
+			debug("Recovery required\n");
 	} else {
 		if (recovery_flag == RECOVER)
-			printf("File System is consistent\n");
+			debug("File System is consistent\n");
 		goto end;
 	}
 
@@ -656,5 +656,5 @@ void ext4fs_update_journal(void)
 	}
 	blknr = read_allocated_block(&inode_journal, jrnl_blk_idx++);
 	update_commit_block(blknr);
-	printf("update journal finished\n");
+	debug("update journal finished\n");
 }

@@ -27,6 +27,7 @@
 #include <linux/stat.h>
 #include <div64.h>
 #include "ext4_common.h"
+#include <watchdog.h>
 
 static inline void ext4fs_sb_free_inodes_inc(struct ext2_sblock *sb)
 {
@@ -777,6 +778,13 @@ static int ext4fs_write_file(struct ext2_inode *file_inode,
 		long int blknr;
 		int blockend = fs->blksz;
 		int skipfirst = 0;
+
+#ifdef CONFIG_AT91SAM9G20ISIS
+		WATCHDOG_RESET_COUNT(1000);
+#else
+		WATCHDOG_RESET();
+#endif
+
 		blknr = read_allocated_block(file_inode, i);
 		if (blknr <= 0)
 			return -1;
