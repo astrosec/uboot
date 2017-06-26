@@ -95,7 +95,7 @@ static int mmc_block_op(enum dfu_op op, struct dfu_entity *dfu,
 static int mmc_file_buffer(struct dfu_entity *dfu, void *buf, long *len)
 {
 	if (dfu_file_buf_len + *len > CONFIG_SYS_DFU_MAX_FILE_SIZE) {
-		printf("%s: File '%s' exceeds max file size. %d > %d\n", __func__,
+		printf("%s: File '%s' exceeds max file size. %lu > %d\n", __func__,
 				       dfu->name, (dfu_file_buf_len + *len), CONFIG_SYS_DFU_MAX_FILE_SIZE);
 
 		dfu_file_buf_len = 0;

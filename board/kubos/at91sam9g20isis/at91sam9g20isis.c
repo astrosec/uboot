@@ -34,6 +34,55 @@ DECLARE_GLOBAL_DATA_PTR;
  * Miscellaneous platform dependent initializations
  */
 
+
+#ifdef CONFIG_HW_WATCHDOG
+
+static int wdc;
+
+void hw_watchdog_init(void)
+{
+	/* Mark watchdog pin as output */
+	wdc = 0;
+	at91_set_pio_output(AT91_PIO_PORTA, 30, 1);
+}
+
+void hw_watchdog_reset_count(int val)
+{
+	int i = 0;
+
+	if (wdc > val)
+	{
+
+		for (i = 0; i < 10; i++)
+		{
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 0);
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 1);
+		}
+
+		wdc = 0;
+	}
+
+	wdc++;
+
+	return;
+}
+
+void hw_watchdog_reset(void)
+{
+	hw_watchdog_reset_count(DEFAULT_WATCHDOG_COUNT);
+}
+
+
+void hw_watchdog_force(void)
+{
+	wdc = DEFAULT_WATCHDOG_COUNT + 1;
+
+	hw_watchdog_reset();
+
+	return;
+}
+#endif /* CONFIG_HW_WATCHDOG */
+
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 /* this is a weak define that we are overriding */
 int board_mmc_init(bd_t *bd)
@@ -95,50 +144,3 @@ int board_eth_init(bd_t *bis)
 	return rc;
 }
 
-#ifdef CONFIG_HW_WATCHDOG
-
-static int wdc;
-
-void hw_watchdog_init(void)
-{
-	/* Mark watchdog pin as output */
-	wdc = 0;
-	at91_set_pio_output(AT91_PIO_PORTA, 30, 1);
-}
-
-void hw_watchdog_reset_count(int val)
-{
-	int i = 0;
-
-	if (wdc > val)
-	{
-
-		for (i = 0; i < 10; i++)
-		{
-			at91_set_pio_value(AT91_PIO_PORTA, 30, 0);
-			at91_set_pio_value(AT91_PIO_PORTA, 30, 1);
-		}
-
-		wdc = 0;
-	}
-
-	wdc++;
-
-	return;
-}
-
-void hw_watchdog_reset()
-{
-	hw_watchdog_reset_count(DEFAULT_WATCHDOG_COUNT);
-}
-
-
-void hw_watchdog_force(void)
-{
-	wdc = DEFAULT_WATCHDOG_COUNT + 1;
-
-	hw_watchdog_reset();
-
-	return;
-}
-#endif /* CONFIG_HW_WATCHDOG */
