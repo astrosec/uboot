@@ -41,9 +41,14 @@
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
-#define CONFIG_USB_FUNCTION_DFU
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~2.5M) */
+
+#define KUBOS_CURR_VERSION "kubos_curr_version"
+#define KUBOS_PREV_VERSION "kubos_prev_version"
+#define KUBOS_CURR_TRIED   "kubos_curr_tried"
+#define KUBOS_BASE         "kpack-base.itb"
+#define KUBOS_UPDATE_FILE  "kubos_updatefile"
 #endif
 
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
@@ -227,7 +232,7 @@
 	DFU_ALT_INFO_MMC
 #endif
 
-if defined(CONFIG_EMMC_BOOT)
+#if defined(CONFIG_EMMC_BOOT)
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1
 #define CONFIG_SYS_MMC_ENV_PART		2
@@ -258,5 +263,3 @@ if defined(CONFIG_EMMC_BOOT)
 #define CONFIG_CLOCK_SYNTHESIZER
 #define CLK_SYNTHESIZER_I2C_ADDR 0x65
 #endif
-
-#endif	/* ! __CONFIG_AM335X_EVM_H */

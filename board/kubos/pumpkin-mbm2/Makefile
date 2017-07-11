@@ -15,6 +15,5 @@
 # limitations under the License.
 #
 
-obj-y	+= at91sam9g20isis.o
-obj-y	+= led.o
+obj-y	+= ../../ti/am335x/board.o
 

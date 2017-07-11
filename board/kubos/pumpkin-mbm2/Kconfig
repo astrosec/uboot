@@ -13,7 +13,7 @@ config SYS_BOARD
 	default "pumpkin-mbm2"
 
 config SYS_VENDOR
-	default "pumpkin"
+	default "kubos"
 
 config SYS_SOC
 	default "am33xx"
