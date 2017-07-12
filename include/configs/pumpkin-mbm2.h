@@ -18,6 +18,9 @@
 
 #include "am335x_evm.h"
 
+/* Undo things we don't want to include from the base Beaglebone Black configuration */
+#undef CONFIG_SYS_LDSCRIPT /* For NOR flash, which we (and the BBB) don't support */
+
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */

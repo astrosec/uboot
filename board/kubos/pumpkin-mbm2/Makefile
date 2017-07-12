@@ -17,7 +17,8 @@
 # For the moment, there are no differences between the MBM2 and a regular
 # Beaglebone Black, so just use the existing code for it.
 
-obj-y	+= ../../ti/am335x/
-obj-y   += ../../ti/common/
+obj-y	+= ../../ti/am335x/board.o
+obj-y	+= ../../ti/am335x/mux.o
+obj-y   += ../../ti/common/board_detect.o
 
 
