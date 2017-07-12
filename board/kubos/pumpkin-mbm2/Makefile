@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# For the moment, there are no differences between the MBM2 and a regular
+# Beaglebone Black, so just use the existing code for it.
 
-obj-y	+= ../../ti/am335x/board.o
+obj-y	+= ../../ti/am335x/
+obj-y   += ../../ti/common/
+
 

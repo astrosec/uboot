@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <configs/am333x_evm.h>
+#include "am335x_evm.h"
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
