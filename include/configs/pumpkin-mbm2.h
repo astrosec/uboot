@@ -20,6 +20,11 @@
 
 /* Undo things we don't want to include from the base Beaglebone Black configuration */
 #undef CONFIG_SYS_LDSCRIPT /* For NOR flash, which we (and the BBB) don't support */
+#undef CONFIG_BOOTCOMMAND
+
+#define CONFIG_BOOTCOMMAND \
+	"fdtfile=pumpkin-mbm2.dtb; " \
+	"run distro_bootcmd"
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
