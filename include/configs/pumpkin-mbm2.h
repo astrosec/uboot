@@ -23,8 +23,38 @@
 #undef CONFIG_BOOTCOMMAND
 
 #define CONFIG_BOOTCOMMAND \
-	"fdtfile=pumpkin-mbm2.dtb; " \
 	"run distro_bootcmd"
+
+#undef CONFIG_EXTRA_ENV_SETTINGS
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	DEFAULT_LINUX_BOOT_ENV \
+	DEFAULT_MMC_TI_ARGS \
+	"bootpart=0:2\0" \
+	"bootdir=/boot\0" \
+	"bootfile=zImage\0" \
+	"fdtfile=pumpkin-mbm2.dtb\0" \
+	"console=ttyS0,115200n8\0" \
+	"partitions=" \
+		"uuid_disk=${uuid_gpt_disk};" \
+		"name=rootfs,start=2MiB,size=-,uuid=${uuid_gpt_rootfs}\0" \
+	"optargs=\0" \
+	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"loadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
+	"mmcloados=run args_mmc; run loadfdt; " \
+				"bootz ${loadaddr} - ${fdtaddr}\0"
+	"mmcboot=mmc dev ${mmcdev}; " \
+		"if mmc rescan; then " \
+			"echo SD/MMC found on device ${mmcdev};" \
+			"run envboot; " \
+			"if run loadimage; then " \
+				"run mmcloados;" \
+			"fi;" \
+		"fi;\0" \
+	NETARGS \
+	DFUARGS \
+	BOOTENV
+#endif
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
