@@ -8,6 +8,7 @@ config USB_FUNCTION_DFU
 	
 config UPDATE_KUBOS
 	bool "Kubos kpack support"
+	selects USB_FUNCTION_DFU
 	help
 	  This option allows performing update of DFU-managed medium with data
 	  packaged in Kubos "kpack" files. 
