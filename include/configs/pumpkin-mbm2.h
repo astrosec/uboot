@@ -41,7 +41,6 @@
 #undef CONFIG_EFI_PARTITION
 #else
 
-#if 0 /* temporary */
 /* EXT4 */
 #ifdef CONFIG_CMD_EXT4
 #define CONFIG_EXT4_WRITE
@@ -53,13 +52,7 @@
 #define EXT4_ENV_FILE            "/system/etc/uboot.env"
 #define CONFIG_ENV_SIZE         1 * 1024 /* Assume sector size of 1024 */
 #endif
-#else
 
-#define CONFIG_ENV_IS_IN_FAT
-#define FAT_ENV_INTERFACE		"mmc"
-#define FAT_ENV_DEVICE_AND_PART		"0:1"
-#define FAT_ENV_FILE			"uboot.env"
-#endif /* temporary */
 #endif /* CONFIG_SPL_BUILD */
 
 /* File updates */
