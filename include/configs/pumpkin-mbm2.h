@@ -26,6 +26,7 @@
 #undef CONFIG_ENV_IS_IN_MMC
 #undef CONFIG_ENV_IS_IN_FAT
 #undef CONFIG_ENV_IS_NOWHERE
+#undef CONFIG_ENV_SIZE
 #undef DFU_ALT_INFO_MMC
 #undef DFU_ALT_INFO_NOR
 /* End of undefs */
@@ -40,6 +41,7 @@
 #undef CONFIG_EFI_PARTITION
 #else
 
+#if 0 /* temporary */
 /* EXT4 */
 #ifdef CONFIG_CMD_EXT4
 #define CONFIG_EXT4_WRITE
@@ -49,8 +51,15 @@
 #define EXT4_ENV_INTERFACE       "mmc"
 #define EXT4_ENV_DEVICE_AND_PART "0:3" /* TODO */
 #define EXT4_ENV_FILE            "/system/etc/uboot.env"
-#define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
+#define CONFIG_ENV_SIZE         1 * 1024 /* Assume sector size of 1024 */
 #endif
+#else
+
+#define CONFIG_ENV_IS_IN_FAT
+#define FAT_ENV_INTERFACE		"mmc"
+#define FAT_ENV_DEVICE_AND_PART		"0:1"
+#define FAT_ENV_FILE			"uboot.env"
+#endif /* temporary */
 #endif /* CONFIG_SPL_BUILD */
 
 /* File updates */
@@ -62,7 +71,7 @@
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
 	"kernel fat 0 1;" 		\
-	"rootfs part 0 2\0"
+	"rootfs part 0 2; " \
 	"uboot fat 0 1;" \
 	"dtb fat 0 1" \
 	"\0"
@@ -81,7 +90,7 @@
 
 #define CONFIG_BOOTARGS \
 	"console=ttyS0,115200 "				\
-	"root=/dev/mmcblk0p2 rootwait"
+	"root=/dev/mmcblk0p2 ext4 rootwait"
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
