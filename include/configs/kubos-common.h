@@ -23,8 +23,8 @@
  * - DFU_ALT_INFO_MMC - Defines the files/partitions which may be replaced in MMC
  *                      storage
  * - DFU_ALT_INFO_NOR - Same as above, but for NOR flash storage
- * - CONFIG_SYS_DFU_DATA_BUF_SIZE - File transfer chunk size (for non-raw file transfer. EXT4, FAT, etc)
- * - CONFIG_SYS_DFU_MAX_FILE_SIZE - Max size for a single file (raw file transfer)
+ * - CONFIG_SYS_DFU_DATA_BUF_SIZE - File transfer chunk size (for raw or file transfer. EXT4, FAT, etc)
+ * - CONFIG_SYS_DFU_MAX_FILE_SIZE - Max size for a single file (partition transfer)
  */
 
 #pragma once

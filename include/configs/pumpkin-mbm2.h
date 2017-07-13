@@ -23,58 +23,70 @@
 #undef CONFIG_SYS_LDSCRIPT /* For NOR flash, which we (and the BBB) don't support */
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_EXTRA_ENV_SETTINGS
+#undef CONFIG_ENV_IS_IN_MMC
+#undef CONFIG_ENV_IS_IN_FAT
+#undef CONFIG_ENV_IS_NOWHERE
+#undef DFU_ALT_INFO_MMC
+#undef DFU_ALT_INFO_NOR
 /* End of undefs */
+
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
+/* Remove other SPL modes. */
+#define CONFIG_ENV_IS_NOWHERE
+#undef CONFIG_ENV_IS_IN_NAND
+/* disable host part of MUSB in SPL */
+/* disable EFI partitions and partition UUID support */
+#undef CONFIG_PARTITION_UUIDS
+#undef CONFIG_EFI_PARTITION
+#else
+
+/* EXT4 */
+#ifdef CONFIG_CMD_EXT4
+#define CONFIG_EXT4_WRITE
+
+/* U-boot env file in user data partition */
+#define CONFIG_ENV_IS_IN_EXT4    1
+#define EXT4_ENV_INTERFACE       "mmc"
+#define EXT4_ENV_DEVICE_AND_PART "0:3" /* TODO */
+#define EXT4_ENV_FILE            "/system/etc/uboot.env"
+#define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
+#endif
+#endif /* CONFIG_SPL_BUILD */
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~2.5M) */
 
-/* DFU Configuration */
+/* DFU Configuration TODO*/
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
-	"kernel fat 0 5;" 		\
-	"rootfs part 0 6\0"
-
-#define DFU_ALT_INFO_NOR \
-	"dfu_alt_info_nor="		    \
-	"uboot raw 0xA000 0x56000;" \
-	"dtb raw 0x70000 0x10000" \
+	"kernel fat 0 1;" 		\
+	"rootfs part 0 2\0"
+	"uboot fat 0 1;" \
+	"dtb fat 0 1" \
 	"\0"
+
+#define DFU_ALT_INFO_NOR ""
 #else
 #define DFU_ALT_INFO_MMC ""
 #define DFU_ALT_INFO_NOR ""
-#endif
+#endif /* CONFIG_UPDATE_KUBOS */
 
+/* TODO: The mmc device will change when we start booting from emmc rather than directly from the sd card */
 #define CONFIG_BOOTCOMMAND \
-	"run distro_bootcmd"
+	"fatload mmc 0:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
+	"fatload mmc 0:1 ${loadaddr} /kernel; " \
+	"bootm ${loadaddr} - ${fdtaddr}"
 
+#define CONFIG_BOOTARGS \
+	"console=ttyS0,115200 "				\
+	"root=/dev/mmcblk0p2 rootwait"
+
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
-	DEFAULT_MMC_TI_ARGS \
-	"bootpart=0:2\0" \
-	"bootdir=/boot\0" \
-	"bootfile=zImage\0" \
-	"fdtfile=pumpkin-mbm2.dtb\0" \
-	"console=ttyS0,115200n8\0" \
-	"partitions=" \
-		"uuid_disk=${uuid_gpt_disk};" \
-		"name=rootfs,start=2MiB,size=-,uuid=${uuid_gpt_rootfs}\0" \
-	"optargs=\0" \
-	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
-	"loadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
-	"mmcloados=run args_mmc; run loadfdt; " \
-				"bootz ${loadaddr} - ${fdtaddr}\0"
-	"mmcboot=mmc dev ${mmcdev}; " \
-		"if mmc rescan; then " \
-			"echo SD/MMC found on device ${mmcdev};" \
-			"run envboot; " \
-			"if run loadimage; then " \
-				"run mmcloados;" \
-			"fi;" \
-		"fi;\0" \
 	NETARGS \
-	DFUARGS \
 	BOOTENV \
 	KUBOS_UPDATE_ARGS
 #endif
