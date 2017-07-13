@@ -26,7 +26,7 @@
 #undef CONFIG_ENV_IS_IN_MMC
 #undef CONFIG_ENV_IS_IN_FAT
 #undef CONFIG_ENV_IS_NOWHERE
-#undef CONFIG_ENV_SIZE
+/* #undef CONFIG_ENV_SIZE */ /* uncomment after removing temporary */
 #undef DFU_ALT_INFO_MMC
 #undef DFU_ALT_INFO_NOR
 /* End of undefs */
