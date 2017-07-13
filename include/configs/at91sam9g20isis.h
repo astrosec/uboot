@@ -59,8 +59,6 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
-#define CONFIG_BOOTCOUNT_LIMIT
-#define CONFIG_BOOTCOUNT_ENV
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */

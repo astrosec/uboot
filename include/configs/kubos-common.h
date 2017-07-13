@@ -30,6 +30,8 @@
 #pragma once
 
 #ifdef CONFIG_UPDATE_KUBOS
+#define CONFIG_BOOTCOUNT_LIMIT
+#define CONFIG_BOOTCOUNT_ENV
 
 /* Update Definitions */
 #define KUBOS_CURR_VERSION "kubos_curr_version"
