@@ -49,7 +49,7 @@
 /* U-boot env file in user data partition */
 #define CONFIG_ENV_IS_IN_EXT4    1
 #define EXT4_ENV_INTERFACE       "mmc"
-#define EXT4_ENV_DEVICE_AND_PART "0:3" /* TODO */
+#define EXT4_ENV_DEVICE_AND_PART "1:3"
 #define EXT4_ENV_FILE            "/system/etc/uboot.env"
 #define CONFIG_ENV_SIZE         10 * 1024 /* Assume sector size of 1024 */
 #endif
@@ -59,15 +59,15 @@
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
-#define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~2.5M) */
+#define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently kernel (~2.5M) */
 
 /* DFU Configuration TODO*/
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
-	"kernel fat 0 1;" 		\
-	"rootfs part 0 2; " \
-	"uboot fat 0 1;" \
-	"dtb fat 0 1" \
+	"kernel fat 1 1;" 		\
+	"rootfs part 1 2; " \
+	"uboot fat 1 1;" \
+	"dtb fat 1 1" \
 	"\0"
 
 #define DFU_ALT_INFO_NOR ""
@@ -78,8 +78,8 @@
 
 /* TODO: The mmc device will change when we start booting from emmc rather than directly from the sd card */
 #define CONFIG_BOOTCOMMAND \
-	"fatload mmc 0:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
-	"fatload mmc 0:1 ${loadaddr} /kernel; " \
+	"fatload mmc 1:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
+	"fatload mmc 1:1 ${loadaddr} /kernel; " \
 	"bootm ${loadaddr} - ${fdtaddr}"
 
 #define CONFIG_BOOTARGS \
