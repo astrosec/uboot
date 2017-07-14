@@ -29,6 +29,7 @@
 #undef CONFIG_ENV_SIZE
 #undef DFU_ALT_INFO_MMC
 #undef DFU_ALT_INFO_NOR
+#undef CONFIG_BOOTCOUNT_AM33XX
 /* End of undefs */
 
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
@@ -50,7 +51,7 @@
 #define EXT4_ENV_INTERFACE       "mmc"
 #define EXT4_ENV_DEVICE_AND_PART "0:3" /* TODO */
 #define EXT4_ENV_FILE            "/system/etc/uboot.env"
-#define CONFIG_ENV_SIZE         1 * 1024 /* Assume sector size of 1024 */
+#define CONFIG_ENV_SIZE         10 * 1024 /* Assume sector size of 1024 */
 #endif
 
 #endif /* CONFIG_SPL_BUILD */
