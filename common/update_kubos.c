@@ -22,7 +22,6 @@
 #include <mmc.h>
 #include <kubos.h>
 
-#define UPGRADE_PART 7
 #define UPDATE_COUNT_ENVAR "kubos_updatecount"
 #define PART_ENVAR         "kubos_updatepart"
 #define LOAD_ENVAR         "kubos_loadaddr"
@@ -121,7 +120,7 @@ int update_kubos(bool upgrade)
 	/*
 	 * Load the SD card
 	 */
-	mmc = find_mmc_device(0);
+	mmc = find_mmc_device(KUBOS_UPGRADE_DEVICE);
 	if (!mmc)
 	{
 		printf("ERROR: Could not access SD card\n");
@@ -152,7 +151,7 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		part = UPGRADE_PART;
+		part = KUBOS_UPGRADE_PART;
 	}
 
 	if (part_get_info(&mmc->block_dev, part, &part_info))
