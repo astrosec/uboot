@@ -12,6 +12,15 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
+*
+* pumpkin-mbm2.h
+*
+* Configuration file for the Pumpkin Motherboard Module 2, using a Beaglebone Black
+* as the OBC.
+*
+* Note: By default, KubOS Linux will be booted from the eMMC storage. This is defined
+* to the system as the SECOND MMC device. The microSD card is defined as the FIRST MMC
+* device.
 */
 
 #pragma once
@@ -32,28 +41,19 @@
 #undef CONFIG_BOOTCOUNT_AM33XX
 /* End of undefs */
 
+/* If we're compiling for the SPL, we don't have an env area */
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
-/* Remove other SPL modes. */
 #define CONFIG_ENV_IS_NOWHERE
-#undef CONFIG_ENV_IS_IN_NAND
-/* disable host part of MUSB in SPL */
-/* disable EFI partitions and partition UUID support */
-#undef CONFIG_PARTITION_UUIDS
-#undef CONFIG_EFI_PARTITION
 #else
-
-/* EXT4 */
+/* Otherwise, it's in an ext4 partition */
 #ifdef CONFIG_CMD_EXT4
 #define CONFIG_EXT4_WRITE
-
-/* U-boot env file in user data partition */
 #define CONFIG_ENV_IS_IN_EXT4    1
 #define EXT4_ENV_INTERFACE       "mmc"
 #define EXT4_ENV_DEVICE_AND_PART "1:3"
 #define EXT4_ENV_FILE            "/system/etc/uboot.env"
 #define CONFIG_ENV_SIZE         10 * 1024 /* Assume sector size of 1024 */
 #endif
-
 #endif /* CONFIG_SPL_BUILD */
 
 /* File updates */
@@ -61,7 +61,10 @@
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently kernel (~2.5M) */
 
-/* DFU Configuration TODO*/
+#define KUBOS_UPGRADE_DEVICE 0
+#define KUBOS_UPGRADE_PART   1
+
+/* DFU Configuration */
 #define DFU_ALT_INFO_MMC \
 	"dfu_alt_info_mmc=" 		\
 	"kernel fat 1 1;" 		\
@@ -76,7 +79,7 @@
 #define DFU_ALT_INFO_NOR ""
 #endif /* CONFIG_UPDATE_KUBOS */
 
-/* TODO: The mmc device will change when we start booting from emmc rather than directly from the sd card */
+/* Boot from eMMC */
 #define CONFIG_BOOTCOMMAND \
 	"fatload mmc 1:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
 	"fatload mmc 1:1 ${loadaddr} /kernel; " \
