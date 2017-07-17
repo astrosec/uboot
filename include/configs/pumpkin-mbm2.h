@@ -81,16 +81,14 @@
 
 /* Boot from eMMC */
 #define CONFIG_BOOTCOMMAND \
-	"fatload mmc 1:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
-	"fatload mmc 1:1 ${loadaddr} /kernel; " \
+	"setenv bootargs console=ttyS0,115200 root=/dev/mmcblk${boot_dev}p2 ext4 rootwait; " \
+	"fatload mmc ${boot_dev}:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
+	"fatload mmc ${boot_dev}:1 ${loadaddr} /kernel; " \
 	"bootm ${loadaddr} - ${fdtaddr}"
-
-#define CONFIG_BOOTARGS \
-	"console=ttyS0,115200 "				\
-	"root=/dev/mmcblk1p2 ext4 rootwait"
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"boot_dev=1\0" \
 	DEFAULT_LINUX_BOOT_ENV \
 	NETARGS \
 	BOOTENV \
