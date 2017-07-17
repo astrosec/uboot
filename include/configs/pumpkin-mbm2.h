@@ -84,7 +84,7 @@
 
 #define CONFIG_BOOTARGS \
 	"console=ttyS0,115200 "				\
-	"root=/dev/mmcblk0p2 ext4 rootwait"
+	"root=/dev/mmcblk1p2 ext4 rootwait"
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
