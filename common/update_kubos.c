@@ -224,9 +224,12 @@ int update_kubos(bool upgrade)
 
 				setenv("dfu_alt_info", dfu_info);
 
-				char dev_num = KUBOS_UPGRADE_DEVICE;
-
-				ret = update_tftp(addr, "mmc", *dev_num);
+				/*
+				 * For right now, the "0" parameter is useless. If you add a dfu_alt_info entity
+				 * in the future which has an entity type of "raw", this might need to change
+				 * to specify a non-zero mmc device number.
+				 */
+				ret = update_tftp(addr, "mmc", "0");
 			}
 
 			if (ret)
