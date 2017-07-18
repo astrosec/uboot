@@ -23,6 +23,7 @@
 #include <kubos.h>
 
 #define UPDATE_COUNT_ENVAR "kubos_updatecount"
+#define DEV_ENVAR          "kubos_updatedev"
 #define PART_ENVAR         "kubos_updatepart"
 #define LOAD_ENVAR         "kubos_loadaddr"
 
@@ -86,7 +87,7 @@ int update_kubos(bool upgrade)
 	char * env_addr;
 	char * dfu_info;
 	loff_t actlen;
-	ulong addr, part = 0;
+	ulong addr, dev_num, part = 0;
 
 	int ret = KUBOS_ERR_NO_REBOOT;
 
@@ -114,13 +115,25 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		addr = CONFIG_SYS_SDRAM_BASE + 0x200;
+		addr = KUBOS_UPGRADE_STORAGE;
+	}
+
+	/*
+	 * Get and upgrade device number
+	 */
+	if ((env_addr = getenv(DEV_ENVAR)) != NULL)
+	{
+		dev_num = simple_strtoul(env_addr, NULL, 16);
+	}
+	else
+	{
+		dev_num = KUBOS_UPGRADE_DEVICE;
 	}
 
 	/*
 	 * Load the SD card
 	 */
-	mmc = find_mmc_device(KUBOS_UPGRADE_DEVICE);
+	mmc = find_mmc_device(dev_num);
 	if (!mmc)
 	{
 		printf("ERROR: Could not access SD card\n");
@@ -211,7 +224,9 @@ int update_kubos(bool upgrade)
 
 				setenv("dfu_alt_info", dfu_info);
 
-				ret = update_tftp(addr, "mmc", "0");
+				char dev_num = KUBOS_UPGRADE_DEVICE;
+
+				ret = update_tftp(addr, "mmc", *dev_num);
 			}
 
 			if (ret)

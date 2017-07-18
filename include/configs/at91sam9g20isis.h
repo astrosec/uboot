@@ -88,6 +88,7 @@
 
 #define KUBOS_UPGRADE_DEVICE 0
 #define KUBOS_UPGRADE_PART   7
+#define KUBOS_UPGRADE_STORAGE CONFIG_SYS_SDRAM_BASE + 0x200 /* Temporary SDRAM storage location */
 
 /* DFU Configuration */
 #define DFU_ALT_INFO_MMC \
