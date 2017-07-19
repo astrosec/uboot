@@ -21,13 +21,11 @@
 
 void coloured_LED_init(void)
 {
-	/* Mark pins for output */
-	gpio_direction_output(CONFIG_LED1, 1);
-	gpio_direction_output(CONFIG_LED2, 1);
-	gpio_direction_output(CONFIG_LED3, 1);
+	gpio_direction_output(CONFIG_RED_LED, 1);
+	gpio_direction_output(CONFIG_GREEN_LED, 1);
+	gpio_direction_output(CONFIG_YELLOW_LED, 1);
 
-	/* Turn them on */
-	gpio_set_value(CONFIG_LED1, 1);
-	gpio_set_value(CONFIG_LED2, 1);
-	gpio_set_value(CONFIG_LED3, 1);
+	gpio_set_value(CONFIG_RED_LED, 1);
+	gpio_set_value(CONFIG_GREEN_LED, 1);
+	gpio_set_value(CONFIG_YELLOW_LED, 1);
 }

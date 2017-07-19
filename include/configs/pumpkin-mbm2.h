@@ -96,7 +96,7 @@
 #endif
 
 /* Status LEDs */
-#define CONFIG_LED1				0x53
-#define CONFIG_LED2				0x54
-#define CONFIG_LED3				0x55
-#define CONFIG_LED4				0x56
+#define CONFIG_RED_LED					0x53
+#define CONFIG_GREEN_LED				0x54
+#define CONFIG_YELLOW_LED				0x55
+#define CONFIG_BLUE_LED					0x56
