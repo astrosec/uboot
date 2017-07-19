@@ -25,8 +25,9 @@
  * - DFU_ALT_INFO_NOR - Same as above, but for NOR flash storage
  * - CONFIG_SYS_DFU_DATA_BUF_SIZE - File transfer chunk size (for raw or file transfer. EXT4, FAT, etc)
  * - CONFIG_SYS_DFU_MAX_FILE_SIZE - Max size for a single file (partition transfer)
- * - KUBOS_UPGRADE_DEVICE - MMC device which has the upgrade partition
- * - KUBOS_UPGRADE_PART   - The partition where the upgrade files are located
+ * - KUBOS_UPGRADE_DEVICE  - MMC device which has the upgrade partition
+ * - KUBOS_UPGRADE_PART    - Partition where the upgrade files are located
+ * - KUBOS_UPGRADE_STORAGE - SDRAM address to be used for temporary storage while upgrading files
  */
 
 #pragma once
