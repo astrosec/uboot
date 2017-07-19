@@ -95,3 +95,8 @@
 	KUBOS_UPDATE_ARGS
 #endif
 
+/* Status LEDs */
+#define CONFIG_LED1				0x53
+#define CONFIG_LED2				0x54
+#define CONFIG_LED3				0x55
+#define CONFIG_LED4				0x56
