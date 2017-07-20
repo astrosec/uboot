@@ -29,6 +29,8 @@
 #include <linux/sizes.h>
 #include <linux/kconfig.h>
 
+#include "kubos-common.h"
+
 /*
  * CONFIG_SYS_TEXT_BASE - The starting address of U-Boot.
  * Warning: changing CONFIG_SYS_TEXT_BASE requires
@@ -57,8 +59,6 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
-#define CONFIG_BOOTCOUNT_LIMIT
-#define CONFIG_BOOTCOUNT_ENV
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
@@ -83,9 +83,23 @@
 
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
-#define CONFIG_USB_FUNCTION_DFU
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */
 #define CONFIG_SYS_DFU_MAX_FILE_SIZE 4 * SZ_1M   /* Maximum size for a single file.  Currently zImage (~2.5M) */
+
+/* DFU Configuration */
+#define DFU_ALT_INFO_MMC \
+	"dfu_alt_info_mmc=" 		\
+	"kernel fat 0 5;" 		\
+	"rootfs part 0 6\0"
+
+#define DFU_ALT_INFO_NOR \
+	"dfu_alt_info_nor="		    \
+	"uboot raw 0xA000 0x56000;" \
+	"dtb raw 0x70000 0x10000" \
+	"\0"
+#else
+#define DFU_ALT_INFO_MMC ""
+#define DFU_ALT_INFO_NOR ""
 #endif
 
 /*
@@ -159,17 +173,6 @@
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sam9g20"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 
-/* Update Definitions */
-#ifdef CONFIG_UPDATE_KUBOS
-
-#define KUBOS_CURR_VERSION "kubos_curr_version"
-#define KUBOS_PREV_VERSION "kubos_prev_version"
-#define KUBOS_CURR_TRIED   "kubos_curr_tried"
-#define KUBOS_BASE         "kpack-base.itb"
-#define KUBOS_UPDATE_FILE  "kubos_updatefile"
-
-#endif
-
 #define CONFIG_SYS_LOAD_ADDR			0x21880000	/* load address to load zImage to */
 
 #define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
@@ -188,38 +191,8 @@
 	"console=ttyS0,115200 "				\
 	"root=/dev/mmcblk0p6 rootwait"
 
-#ifdef CONFIG_UPDATE_KUBOS
-
-/* DFU Configuration */
-#define DFU_ALT_INFO_MMC \
-	"dfu_alt_info_mmc=" 		\
-	"kernel fat 0 5;" 		\
-	"rootfs part 0 6\0"
-
-#define DFU_ALT_INFO_NOR \
-	"dfu_alt_info_nor="		    \
-	"uboot raw 0xA000 0x56000;" \
-	"dtb raw 0x70000 0x10000" \
-	"\0"
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv\0" \
-	"recovery_available=1\0" \
-    "bootlimit=3\0" \
-	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \
-	KUBOS_PREV_VERSION "=" KUBOS_BASE "\0" \
-	KUBOS_CURR_TRIED "=0\0" \
-	DFU_ALT_INFO_MMC \
-	DFU_ALT_INFO_NOR
-
-#else
-
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv\0" \
-	"recovery_available=1\0" \
-    "bootlimit=1\0" \
-
-#endif /* CONFIG_UPDATE_KUBOS */
+	KUBOS_UPDATE_ARGS
 
 #define CONFIG_SYS_FLASH_CFI			1
 #define CONFIG_FLASH_CFI_DRIVER			1
@@ -231,7 +204,7 @@
  */
 #define CONFIG_SYS_MAX_FLASH_SECT		23
 #define CONFIG_SYS_MAX_FLASH_BANKS		1
-#endif
+#endif /* CONFIG_SYS_USE_NORFLASH */
 
 #define CONFIG_SYS_CBSIZE		256
 #define CONFIG_SYS_MAXARGS		16

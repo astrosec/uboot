@@ -130,6 +130,15 @@ choice
 	prompt "Target select"
 	default TARGET_HIKEY
 
+config TARGET_PUMPKIN_MBM2
+	bool "Support Pumpkin MBM2"
+	select CPU_V7
+	select SUPPORT_SPL
+	select DM
+	select DM_SERIAL
+	select DM_GPIO
+	select TI_I2C_BOARD_DETECT
+
 config ARCH_AT91
 	bool "Atmel AT91"
 
@@ -1048,6 +1057,7 @@ source "board/h2200/Kconfig"
 source "board/hisilicon/hikey/Kconfig"
 source "board/imx31_phycore/Kconfig"
 source "board/isee/igep0033/Kconfig"
+source "board/kubos/pumpkin-mbm2/Kconfig"
 source "board/mpl/vcma9/Kconfig"
 source "board/olimex/mx23_olinuxino/Kconfig"
 source "board/phytec/pcm051/Kconfig"
