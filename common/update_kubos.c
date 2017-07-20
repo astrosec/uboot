@@ -22,8 +22,8 @@
 #include <mmc.h>
 #include <kubos.h>
 
-#define UPGRADE_PART 7
 #define UPDATE_COUNT_ENVAR "kubos_updatecount"
+#define DEV_ENVAR          "kubos_updatedev"
 #define PART_ENVAR         "kubos_updatepart"
 #define LOAD_ENVAR         "kubos_loadaddr"
 
@@ -87,7 +87,7 @@ int update_kubos(bool upgrade)
 	char * env_addr;
 	char * dfu_info;
 	loff_t actlen;
-	ulong addr, part = 0;
+	ulong addr, dev_num, part = 0;
 
 	int ret = KUBOS_ERR_NO_REBOOT;
 
@@ -115,13 +115,25 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		addr = CONFIG_SYS_SDRAM_BASE + 0x200;
+		addr = KUBOS_UPGRADE_STORAGE;
+	}
+
+	/*
+	 * Get and upgrade device number
+	 */
+	if ((env_addr = getenv(DEV_ENVAR)) != NULL)
+	{
+		dev_num = simple_strtoul(env_addr, NULL, 16);
+	}
+	else
+	{
+		dev_num = KUBOS_UPGRADE_DEVICE;
 	}
 
 	/*
 	 * Load the SD card
 	 */
-	mmc = find_mmc_device(0);
+	mmc = find_mmc_device(dev_num);
 	if (!mmc)
 	{
 		printf("ERROR: Could not access SD card\n");
@@ -152,7 +164,7 @@ int update_kubos(bool upgrade)
 	}
 	else
 	{
-		part = UPGRADE_PART;
+		part = KUBOS_UPGRADE_PART;
 	}
 
 	if (part_get_info(&mmc->block_dev, part, &part_info))
@@ -212,6 +224,11 @@ int update_kubos(bool upgrade)
 
 				setenv("dfu_alt_info", dfu_info);
 
+				/*
+				 * For right now, the "0" parameter is useless. If you add a dfu_alt_info entity
+				 * in the future which has an entity type of "raw", this might need to change
+				 * to specify a non-zero mmc device number.
+				 */
 				ret = update_tftp(addr, "mmc", "0");
 			}
 

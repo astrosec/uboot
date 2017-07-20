@@ -21,4 +21,6 @@ obj-y	+= ../../ti/am335x/board.o
 obj-y	+= ../../ti/am335x/mux.o
 obj-y	+= ../../ti/common/board_detect.o
 
+obj-y   += led.o
+
 

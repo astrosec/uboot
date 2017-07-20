@@ -310,8 +310,6 @@ int dfu_fill_entity_mmc(struct dfu_entity *dfu, char *devstr, char *s)
 	const char *argv[3];
 	const char **parg = argv;
 
-	dfu->data.mmc.dev_num = simple_strtoul(devstr, NULL, 10);
-
 	for (; parg < argv + sizeof(argv) / sizeof(*argv); ++parg) {
 		*parg = strsep(&s, " ");
 		if (*parg == NULL) {
@@ -327,6 +325,17 @@ int dfu_fill_entity_mmc(struct dfu_entity *dfu, char *devstr, char *s)
 	 */
 	second_arg = simple_strtoul(argv[1], NULL, 0);
 	third_arg = simple_strtoul(argv[2], NULL, 0);
+
+	/* if it's NOT a raw write */
+	if (strcmp(entity_type, "raw")) {
+		dfu->data.mmc.dev_num = (int) second_arg;
+		dfu->data.mmc.dev = second_arg;
+		dfu->data.mmc.part = third_arg;
+	}
+	else
+	{
+		dfu->data.mmc.dev_num = simple_strtoul(devstr, NULL, 10);
+	}
 
 	mmc = find_mmc_device(dfu->data.mmc.dev_num);
 	if (mmc == NULL) {
@@ -379,12 +388,6 @@ int dfu_fill_entity_mmc(struct dfu_entity *dfu, char *devstr, char *s)
 	} else {
 		error("Memory layout (%s) not supported!\n", entity_type);
 		return -ENODEV;
-	}
-
-	/* if it's NOT a raw write */
-	if (strcmp(entity_type, "raw")) {
-		dfu->data.mmc.dev = second_arg;
-		dfu->data.mmc.part = third_arg;
 	}
 
 	dfu->dev_type = DFU_DEV_MMC;
