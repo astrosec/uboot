@@ -95,8 +95,3 @@
 	KUBOS_UPDATE_ARGS
 #endif
 
-/* Status LEDs */
-#define CONFIG_RED_LED					0x53
-#define CONFIG_GREEN_LED				0x54
-#define CONFIG_YELLOW_LED				0x55
-#define CONFIG_BLUE_LED					0x56
