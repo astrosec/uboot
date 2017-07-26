@@ -130,6 +130,15 @@ choice
 	prompt "Target select"
 	default TARGET_HIKEY
 
+config TARGET_BEAGLEBONE_BLACK
+	bool "Support Beaglebone Black with KubOS Linux"
+	select CPU_V7
+	select SUPPORT_SPL
+	select DM
+	select DM_SERIAL
+	select DM_GPIO
+	select TI_I2C_BOARD_DETECT
+	
 config TARGET_PUMPKIN_MBM2
 	bool "Support Pumpkin MBM2"
 	select CPU_V7
