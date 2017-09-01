@@ -178,12 +178,12 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		if (status & ATMEL_SPI_SR_OVRES)
 			return -1;
 
-        if (status & ATMEL_SPI_SR_RDRF) {
-            value = spi_readl(as, RDR);
-            if (rxp)
-                *rxp++ = value;
-            len_rx++;
-        }
+		if (status & ATMEL_SPI_SR_RDRF) {
+			value = spi_readl(as, RDR);
+			if (rxp)
+				*rxp++ = value;
+			len_rx++;
+		}
 
 		if (len_tx < len && (status & ATMEL_SPI_SR_TDRE)) {
 			if (txp)
