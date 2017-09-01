@@ -157,6 +157,7 @@ config SPI_BOOT
 	  some not.
 	  
 config SD_SWITCH
+    bool "Support for SD slot switching"
     default n
     depends on CMD_SPI
     help
