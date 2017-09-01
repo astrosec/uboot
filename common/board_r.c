@@ -859,13 +859,15 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
+#ifndef AT91SAM9G20ISIS
 #ifdef CONFIG_GENERIC_MMC
-	initr_mmc,
+    initr_mmc,
 #endif
 #ifdef CONFIG_HAS_DATAFLASH
 	initr_dataflash,
 #endif
 	initr_env,
+#endif
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
 	initr_malloc_bootparams,
 #endif
@@ -885,6 +887,12 @@ init_fnc_t init_sequence_r[] = {
 	initr_jumptable,
 #ifdef CONFIG_API
 	initr_api,
+#endif
+#ifdef CONFIG_AT91SAM9G20ISIS
+#ifdef CONFIG_GENERIC_MMC
+    initr_mmc,
+#endif
+    initr_env,
 #endif
 	console_init_r,		/* fully init console as a device */
 #ifdef CONFIG_DISPLAY_BOARDINFO_LATE

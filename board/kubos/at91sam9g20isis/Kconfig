@@ -8,5 +8,14 @@ config SYS_VENDOR
 
 config SYS_CONFIG_NAME
 	default "at91sam9g20isis"
+	
+config SD_SWITCH
+    default n
+    depends on CMD_SPI
+    help
+      ** WARNING ** The external SD switching binary must be installed in order for
+      this option to work! DO NOT ENABLE UNLESS YOU'RE SURE IT HAS BEEN INSTALLED.
+      
+      Enables the ability boot from either of the SD slots, rather than only SD slot 0.
 
 endif

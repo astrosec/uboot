@@ -89,10 +89,19 @@ int board_mmc_init(bd_t *bd)
 {
 	at91_mci_hw_init();
 
-	debug("board_mmc_init turn on power pin\r\n");
+#ifdef CONFIG_SD_SWITCH
+	/*
+	 * Go run the external binary which will detect and power
+	 * the appropriate SD card slot.
+	 */
+	char * setsd = SETSD_CMD;
+	run_command_list(setsd, -1, 0);
+#else
+    /* Turn on the SD0 power pin - value must be LOW */
+    at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+#endif
 
-	/* Turn on the SD0 power pin - value must be LOW */
-	at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+	debug("board_mmc_init turn on power pin\r\n");
 
 	return atmel_mci_init((void *)ATMEL_BASE_MCI);
 }
@@ -116,6 +125,11 @@ int board_init(void)
 
 #ifdef CONFIG_HW_WATCHDOG
 	hw_watchdog_init();
+#endif
+
+#if defined(CONFIG_CMD_SPI) && defined(CONFIG_SD_SWITCH)
+	/* Enable SPI bus 0 and CS 0 */
+	at91_spi0_hw_init(1 << 0);
 #endif
 
 	return 0;
@@ -143,4 +157,46 @@ int board_eth_init(bd_t *bis)
 #endif
 	return rc;
 }
+
+
+/* SPI chip select control */
+#ifdef CONFIG_ATMEL_SPI
+#include <spi.h>
+int spi_cs_is_valid(unsigned int bus, unsigned int cs)
+{
+    return bus == 0 && cs < 2;
+}
+
+void spi_cs_activate(struct spi_slave *slave)
+{
+
+	printf("spi_cs_activate()\n");
+    switch (slave->cs) {
+    case 0:
+        at91_set_pio_output(AT91_PIO_PORTA, 3, 0);
+        break;
+    case 1:
+        at91_set_pio_output(AT91_PIO_PORTC, 11, 0);
+        break;
+    case 2:
+        at91_set_pio_output(AT91_PIO_PORTB, 17, 0);
+        break;
+    }
+}
+
+void spi_cs_deactivate(struct spi_slave *slave)
+{
+    switch (slave->cs) {
+    case 0:
+        at91_set_pio_output(AT91_PIO_PORTA, 3, 1);
+        break;
+    case 1:
+        at91_set_pio_output(AT91_PIO_PORTC, 11, 1);
+        break;
+    case 2:
+        at91_set_pio_output(AT91_PIO_PORTB, 17, 1);
+        break;
+    }
+}
+#endif /* CONFIG_ATMEL_SPI */
 
