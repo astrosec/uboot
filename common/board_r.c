@@ -859,7 +859,7 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
-#ifndef AT91SAM9G20ISIS
+#ifndef CONFIG_AT91SAM9G20ISIS
 #ifdef CONFIG_GENERIC_MMC
 	initr_mmc,
 #endif
