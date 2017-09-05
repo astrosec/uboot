@@ -94,12 +94,42 @@ int board_mmc_init(bd_t *bd)
      * Go run the external binary which will detect and power
      * the appropriate SD card slot.
      */
-    char * setsd = SETSD_CMD;
-    run_command_list(setsd, -1, 0);
-#else
-    /* Turn on the SD0 power pin - value must be LOW */
-    at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+    void * src = (void *)STANDALONE_SOURCE;
+    int status = 0;
+
+    if(fit_check_format(src))
+    {
+    	int depth = 0;
+    	int offset = fdt_next_node(src, fdt_path_offset(src, FIT_IMAGES_PATH), &depth);
+
+    	if(!fit_image_verify(src, offset))
+    	{
+    		status = -1;
+    	}
+	else
+	{
+		const void* data;
+		ulong* size;
+		fit_image_get_data(src, offset, &data, (size_t *)size);
+	}
+    }
+    else
+    {
+    	status = -1;
+    }
+
+    if(status == 0)
+    {
+		char * setsd = SETSD_CMD;
+		run_command_list(setsd, -1, 0);
+    }
+    else
 #endif
+    {
+		debug("Using default SD card\n");
+		/* Turn on the SD0 power pin - value must be LOW */
+		at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+    }
 
     debug("board_mmc_init turn on power pin\r\n");
 
