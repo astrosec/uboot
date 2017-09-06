@@ -3,7 +3,7 @@
  * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
- * SPDX-License-Identifier:    GPL-2.0+
+ * SPDX-License-Identifier:	GPL-2.0+
  *
  * Modified for Kubos Linux:
  *   This file was originally based on at91sam920ek.c and
@@ -41,45 +41,45 @@ static int wdc;
 
 void hw_watchdog_init(void)
 {
-    /* Mark watchdog pin as output */
-    wdc = 0;
-    at91_set_pio_output(AT91_PIO_PORTA, 30, 1);
+	/* Mark watchdog pin as output */
+	wdc = 0;
+	at91_set_pio_output(AT91_PIO_PORTA, 30, 1);
 }
 
 void hw_watchdog_reset_count(int val)
 {
-    int i = 0;
+	int i = 0;
 
-    if (wdc > val)
-    {
+	if (wdc > val)
+	{
 
-        for (i = 0; i < 10; i++)
-        {
-            at91_set_pio_value(AT91_PIO_PORTA, 30, 0);
-            at91_set_pio_value(AT91_PIO_PORTA, 30, 1);
-        }
+		for (i = 0; i < 10; i++)
+		{
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 0);
+			at91_set_pio_value(AT91_PIO_PORTA, 30, 1);
+		}
 
-        wdc = 0;
-    }
+		wdc = 0;
+	}
 
-    wdc++;
+	wdc++;
 
-    return;
+	return;
 }
 
 void hw_watchdog_reset(void)
 {
-    hw_watchdog_reset_count(DEFAULT_WATCHDOG_COUNT);
+	hw_watchdog_reset_count(DEFAULT_WATCHDOG_COUNT);
 }
 
 
 void hw_watchdog_force(void)
 {
-    wdc = DEFAULT_WATCHDOG_COUNT + 1;
+	wdc = DEFAULT_WATCHDOG_COUNT + 1;
 
-    hw_watchdog_reset();
+	hw_watchdog_reset();
 
-    return;
+	return;
 }
 #endif /* CONFIG_HW_WATCHDOG */
 
@@ -87,90 +87,104 @@ void hw_watchdog_force(void)
 /* this is a weak define that we are overriding */
 int board_mmc_init(bd_t *bd)
 {
-    at91_mci_hw_init();
+	at91_mci_hw_init();
 
 #ifdef CONFIG_SD_SWITCH
-    /*
-     * Go run the external binary which will detect and power
-     * the appropriate SD card slot.
-     */
-    void * src = (void *)STANDALONE_SOURCE;
-    int status = 0;
+	/*
+	 * Verify and then run the external binary which will detect and power
+	 * the appropriate SD card slot.
+	 */
+	void * src = (void *)STANDALONE_SOURCE;
+	int status = 0;
+	const void * data;
 
-    if(fit_check_format(src))
-    {
-    	int depth = 0;
-    	int offset = fdt_next_node(src, fdt_path_offset(src, FIT_IMAGES_PATH), &depth);
+	/* Verify that the binary is a) present and b) uncorrupted */
+	if(fit_check_format(src))
+	{
+		int depth = 0;
+		int offset = fdt_next_node(src, fdt_path_offset(src, FIT_IMAGES_PATH), &depth);
 
-    	if(!fit_image_verify(src, offset))
-    	{
-    		status = -1;
-    	}
+		if(fit_image_verify(src, offset))
+		{
+			size_t * len = 0;
+			fit_image_get_data(src, offset, &data, len);
+		}
+		else
+		{
+			status = -1;
+		}
+	}
 	else
 	{
-		const void* data;
-		ulong* size;
-		fit_image_get_data(src, offset, &data, (size_t *)size);
+		status = -1;
 	}
-    }
-    else
-    {
-    	status = -1;
-    }
 
-    if(status == 0)
-    {
-		char * setsd = SETSD_CMD;
-		run_command_list(setsd, -1, 0);
-    }
-    else
+	if(status == 0)
+	{
+		/* Copy binary from flash to SDRAM */
+		int size = 4;
+		int count = 1000;
+		void *buf = (void *)CONFIG_STANDALONE_LOAD_ADDR;
+		void *from = (void *)data;
+		while (count-- > 0) {
+			*((u32 *)buf) = *((u32  *)from);
+			from += size;
+			buf += size;
+		}
+
+		/* Go run it */
+		char go_cmd[] = "go 0xnnnnnnnn\n";
+		sprintf(go_cmd, "go 0x%p\n", (void *)CONFIG_STANDALONE_LOAD_ADDR);
+		run_command_list(go_cmd, -1, 0);
+	}
+	else
 #endif
-    {
+	{
 		debug("Using default SD card\n");
 		/* Turn on the SD0 power pin - value must be LOW */
 		at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
-    }
+	}
 
-    debug("board_mmc_init turn on power pin\r\n");
+	debug("board_mmc_init turn on power pin\r\n");
 
-    return atmel_mci_init((void *)ATMEL_BASE_MCI);
+	return atmel_mci_init((void *)ATMEL_BASE_MCI);
 }
 #endif
 
 int board_early_init_f(void)
 {
-    at91_periph_clk_enable(ATMEL_ID_PIOA);
-    at91_periph_clk_enable(ATMEL_ID_PIOB);
-    at91_periph_clk_enable(ATMEL_ID_PIOC);
+	at91_periph_clk_enable(ATMEL_ID_PIOA);
+	at91_periph_clk_enable(ATMEL_ID_PIOB);
+	at91_periph_clk_enable(ATMEL_ID_PIOC);
 
-    return 0;
+	return 0;
 }
 
 int board_init(void)
 {
-    /* adress of boot parameters */
-    gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
+	/* adress of boot parameters */
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-    at91_seriald_hw_init();
+	at91_seriald_hw_init();
 
 #ifdef CONFIG_HW_WATCHDOG
-    hw_watchdog_init();
+	hw_watchdog_init();
 #endif
 
 #if defined(CONFIG_CMD_SPI) && defined(CONFIG_SD_SWITCH)
-    /* Enable SPI bus 0 and CS 0 */
-    at91_spi0_hw_init(1 << 0);
+	/* Enable SPI bus 0 and CS 0 */
+	at91_spi0_hw_init(1 << 0);
 #endif
 
-    return 0;
+	return 0;
 }
 
 int dram_init(void)
 {
-    gd->ram_size = get_ram_size(
-        (void *)CONFIG_SYS_SDRAM_BASE,
-        CONFIG_SYS_SDRAM_SIZE);
-    return 0;
+	gd->ram_size = get_ram_size(
+		(void *)CONFIG_SYS_SDRAM_BASE,
+		CONFIG_SYS_SDRAM_SIZE);
+	return 0;
 }
 
 #ifdef CONFIG_RESET_PHY_R
@@ -181,11 +195,11 @@ void reset_phy(void)
 
 int board_eth_init(bd_t *bis)
 {
-    int rc = 0;
+	int rc = 0;
 #ifdef CONFIG_MACB
-    rc = macb_eth_initialize(0, (void *)ATMEL_BASE_EMAC0, 0x00);
+	rc = macb_eth_initialize(0, (void *)ATMEL_BASE_EMAC0, 0x00);
 #endif
-    return rc;
+	return rc;
 }
 
 
@@ -194,39 +208,37 @@ int board_eth_init(bd_t *bis)
 #include <spi.h>
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-    return bus == 0 && cs < 2;
+	return bus == 0 && cs < 2;
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
-
-    printf("spi_cs_activate()\n");
-    switch (slave->cs) {
-    case 0:
-        at91_set_pio_output(AT91_PIO_PORTA, 3, 0);
-        break;
-    case 1:
-        at91_set_pio_output(AT91_PIO_PORTC, 11, 0);
-        break;
-    case 2:
-        at91_set_pio_output(AT91_PIO_PORTB, 17, 0);
-        break;
-    }
+	switch (slave->cs) {
+	case 0:
+		at91_set_pio_output(AT91_PIO_PORTA, 3, 0);
+		break;
+	case 1:
+		at91_set_pio_output(AT91_PIO_PORTC, 11, 0);
+		break;
+	case 2:
+		at91_set_pio_output(AT91_PIO_PORTB, 17, 0);
+		break;
+	}
 }
 
 void spi_cs_deactivate(struct spi_slave *slave)
 {
-    switch (slave->cs) {
-    case 0:
-        at91_set_pio_output(AT91_PIO_PORTA, 3, 1);
-        break;
-    case 1:
-        at91_set_pio_output(AT91_PIO_PORTC, 11, 1);
-        break;
-    case 2:
-        at91_set_pio_output(AT91_PIO_PORTB, 17, 1);
-        break;
-    }
+	switch (slave->cs) {
+	case 0:
+		at91_set_pio_output(AT91_PIO_PORTA, 3, 1);
+		break;
+	case 1:
+		at91_set_pio_output(AT91_PIO_PORTC, 11, 1);
+		break;
+	case 2:
+		at91_set_pio_output(AT91_PIO_PORTB, 17, 1);
+		break;
+	}
 }
 #endif /* CONFIG_ATMEL_SPI */
 
