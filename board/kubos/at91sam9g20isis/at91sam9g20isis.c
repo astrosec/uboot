@@ -115,6 +115,8 @@ int board_mmc_init(bd_t *bd)
 		{
 			status = -1;
 		}
+
+		printf("\n"); /* Fix the console output formatting */
 	}
 	else
 	{
