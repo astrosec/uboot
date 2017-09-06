@@ -104,6 +104,8 @@ int board_mmc_init(bd_t *bd)
 		int depth = 0;
 		int offset = fdt_next_node(src, fdt_path_offset(src, FIT_IMAGES_PATH), &depth);
 
+		printf("\n"); /* Fix the console output formatting */
+
 		if(fit_image_verify(src, offset))
 		{
 			size_t * len = 0;
