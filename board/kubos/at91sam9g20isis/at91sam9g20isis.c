@@ -83,16 +83,100 @@ void hw_watchdog_force(void)
 }
 #endif /* CONFIG_HW_WATCHDOG */
 
+#ifdef CONFIG_SD_SWITCH
+int set_mmc_slot(uint8_t slot)
+{
+    /*
+     * Verify and then run the external binary which will detect and power
+     * the appropriate SD card slot.
+     */
+    void * src = (void *)STANDALONE_SOURCE;
+    int status = 0;
+    const void * data;
+
+    /* Verify that the binary is a) present and b) uncorrupted */
+    if(fit_check_format(src))
+    {
+        int depth = 0;
+        int offset = fdt_next_node(src, fdt_path_offset(src, FIT_IMAGES_PATH), &depth);
+
+        printf("\n"); /* Fix the console output formatting */
+
+        if(fit_image_verify(src, offset))
+        {
+            size_t * len = 0;
+            fit_image_get_data(src, offset, &data, len);
+        }
+        else
+        {
+            status = -1;
+        }
+
+        printf("\n"); /* Fix the console output formatting */
+    }
+    else
+    {
+        status = -1;
+    }
+
+    if(status == 0)
+    {
+        /* Copy binary from flash to SDRAM */
+        int size = 4;
+        int count = 1000;
+        void *buf = (void *)CONFIG_STANDALONE_LOAD_ADDR;
+        void *from = (void *)data;
+        while (count-- > 0) {
+            *((u32 *)buf) = *((u32  *)from);
+            from += size;
+            buf += size;
+        }
+
+        char sd_byte[] = "0xnn";
+        if(slot == '0')
+        {
+            strcpy(sd_byte, "0x01");
+        }
+        else if(slot == '1')
+        {
+            strcpy(sd_byte, "0x9F");
+        }
+
+        /* Go run it */
+        char go_cmd[] = "go 0xnnnnnnnn 0xnn\n";
+
+        if(!slot)
+        {
+            sprintf(go_cmd, "go 0x%p\n", (void *)CONFIG_STANDALONE_LOAD_ADDR);
+        }
+        else
+        {
+            sprintf(go_cmd, "go 0x%p %s\n", (void *)CONFIG_STANDALONE_LOAD_ADDR, sd_byte);
+        }
+
+        run_command_list(go_cmd, -1, 0);
+    }
+
+    return status;
+}
+#endif
+
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 /* this is a weak define that we are overriding */
 int board_mmc_init(bd_t *bd)
 {
 	at91_mci_hw_init();
 
-	debug("board_mmc_init turn on power pin\r\n");
+#ifdef CONFIG_SD_SWITCH
+    if(set_mmc_slot(0) !=0)
+#endif
+	{
+		debug("Using default SD card\n");
+		/* Turn on the SD0 power pin - value must be LOW */
+		at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+	}
 
-	/* Turn on the SD0 power pin - value must be LOW */
-	at91_set_pio_output(AT91_PIO_PORTB, 6, 0);
+	debug("board_mmc_init turn on power pin\r\n");
 
 	return atmel_mci_init((void *)ATMEL_BASE_MCI);
 }
@@ -118,14 +202,23 @@ int board_init(void)
 	hw_watchdog_init();
 #endif
 
+#if defined(CONFIG_CMD_SPI) && defined(CONFIG_SD_SWITCH)
+	/* Enable SPI bus 0 and CS 0 */
+	at91_spi0_hw_init(1 << 0);
+#endif
+
 	return 0;
 }
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size(
-		(void *)CONFIG_SYS_SDRAM_BASE,
-		CONFIG_SYS_SDRAM_SIZE);
+    /*
+     * This used to be = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_SIZE);
+     * I ran into a bizarre heisenbug during init while adding a printf in cmd/mmc.c which
+     * caused get_ram_size() to hang. No idea what the root cause is, but simply not using
+     * the function doesn't appear to impact the system in any other way.
+     */
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 	return 0;
 }
 
@@ -143,4 +236,44 @@ int board_eth_init(bd_t *bis)
 #endif
 	return rc;
 }
+
+
+/* SPI chip select control */
+#ifdef CONFIG_ATMEL_SPI
+#include <spi.h>
+int spi_cs_is_valid(unsigned int bus, unsigned int cs)
+{
+	return bus == 0 && cs < 2;
+}
+
+void spi_cs_activate(struct spi_slave *slave)
+{
+	switch (slave->cs) {
+	case 0:
+		at91_set_pio_output(AT91_PIO_PORTA, 3, 0);
+		break;
+	case 1:
+		at91_set_pio_output(AT91_PIO_PORTC, 11, 0);
+		break;
+	case 2:
+		at91_set_pio_output(AT91_PIO_PORTB, 17, 0);
+		break;
+	}
+}
+
+void spi_cs_deactivate(struct spi_slave *slave)
+{
+	switch (slave->cs) {
+	case 0:
+		at91_set_pio_output(AT91_PIO_PORTA, 3, 1);
+		break;
+	case 1:
+		at91_set_pio_output(AT91_PIO_PORTC, 11, 1);
+		break;
+	case 2:
+		at91_set_pio_output(AT91_PIO_PORTB, 17, 1);
+		break;
+	}
+}
+#endif /* CONFIG_ATMEL_SPI */
 

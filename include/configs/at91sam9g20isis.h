@@ -81,6 +81,11 @@
 #define CONFIG_YELLOW_LED   AT91_PIN_PC14
 #define CONFIG_BLUE_LED     AT91_PIN_PC15   /* Unused */
 
+/* SPI */
+#define CONFIG_ATMEL_SPI
+#define CONFIG_STANDALONE_LOAD_ADDR 0x21800000
+#define STANDALONE_SOURCE 0x10080000
+
 /* File updates */
 #ifdef CONFIG_UPDATE_KUBOS
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE 500 * SZ_1K /* File transfer chunk size */

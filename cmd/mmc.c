@@ -424,6 +424,29 @@ static int do_mmc_dev(cmd_tbl_t *cmdtp, int flag,
 
 	return CMD_RET_SUCCESS;
 }
+
+#ifdef CONFIG_SD_SWITCH
+static int do_mmc_slot(cmd_tbl_t *cmdtp, int flag,
+              int argc, char * const argv[])
+{
+    uint8_t slot = argv[1][0];
+
+    if(slot != '0' && slot != '1')
+    {
+        return CMD_RET_USAGE;
+    }
+
+    if(set_mmc_slot(slot) != 0)
+    {
+        printf("Failed to set SD slot\n");
+        return CMD_RET_FAILURE;
+    }
+
+    printf("Booting SD card slot has been updated. In order for these changes to take effect, the system must be rebooted\n");
+    return CMD_RET_SUCCESS;
+}
+#endif
+
 static int do_mmc_list(cmd_tbl_t *cmdtp, int flag,
 		       int argc, char * const argv[])
 {
@@ -749,6 +772,9 @@ static cmd_tbl_t cmd_mmc[] = {
 	U_BOOT_CMD_MKENT(rpmb, CONFIG_SYS_MAXARGS, 1, do_mmcrpmb, "", ""),
 #endif
 	U_BOOT_CMD_MKENT(setdsr, 2, 0, do_mmc_setdsr, "", ""),
+#ifdef CONFIG_SD_SWITCH
+	U_BOOT_CMD_MKENT(slot, 2, 0, do_mmc_slot, "", ""),
+#endif
 };
 
 static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
@@ -813,6 +839,9 @@ U_BOOT_CMD(
 	"mmc rpmb counter - read the value of the write counter\n"
 #endif
 	"mmc setdsr <value> - set DSR register value\n"
+#ifdef CONFIG_SD_SWITCH
+	"mmc slot <0|1> - set SD slot to boot from (requires reboot)\n"
+#endif
 	);
 
 /* Old command kept for compatibility. Same as 'mmc info' */

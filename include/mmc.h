@@ -579,6 +579,10 @@ int cpu_mmc_init(bd_t *bis);
 int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr);
 int mmc_get_env_dev(void);
 
+#ifdef CONFIG_SD_SWITCH
+int set_mmc_slot(uint8_t slot);
+#endif
+
 struct pci_device_id;
 
 /**

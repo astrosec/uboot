@@ -155,6 +155,16 @@ config SPI_BOOT
 	  Enabling this will make a U-Boot binary that is capable of being
 	  booted via SPI flash. This is not a must, some SoCs need this,
 	  some not.
+	  
+config SD_SWITCH
+    bool "Support for SD slot switching"
+    default n
+    depends on CMD_SPI
+    help
+      ** WARNING ** The external SD switching binary must be installed in order for
+      this option to work! DO NOT ENABLE UNLESS YOU'RE SURE IT HAS BEEN INSTALLED.
+      
+      Enables the ability boot from either of the SD slots, rather than only SD slot 0.
 
 endmenu
 
