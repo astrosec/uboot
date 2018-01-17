@@ -30,6 +30,7 @@
 
 /* Undo things we don't want to include from the base Beaglebone Black configuration */
 #undef CONFIG_SYS_LDSCRIPT /* For NOR flash, which we (and the BBB) don't support */
+#undef CONFIG_BOOTCOMMAND
 #undef BOOT_TARGET_DEVICES
 #undef CONFIG_EXTRA_ENV_SETTINGS
 #undef CONFIG_ENV_IS_IN_MMC
@@ -80,7 +81,9 @@
 #define DFU_ALT_INFO_NOR ""
 #endif /* CONFIG_UPDATE_KUBOS */
 
-//TODO: check for boot_dev before running through list of boot targets
+/*TODO: check for boot_dev */
+#define CONFIG_BOOTCOMMAND \
+    "run distro_bootcmd"
 
 #define BOOT_TARGET_DEVICES(func) \
     func(LEGACY_MMC, legacy_mmc, 0) \
@@ -97,17 +100,16 @@
         "root=PARTUUID=${uuid} ro " \
         "rootfstype=${mmcrootfstype}\0" \
     "bootfile=kernel\0" \
-    "target=pumpkin-mbm2\0" \
     "console=ttyS0,115200\0" \
     "optargs=\0" \
     "loadimage=fatload mmc ${bootpart} ${loadaddr} /${bootfile}\0" \
-    "loadfdt=fatload mmc ${bootpart} ${fdtaddr} /${target}.dtb\0" \
+    "loadfdt=fatload mmc ${bootpart} ${fdtaddr} /${board}.dtb\0" \
     "mmcloados=run args_mmc; " \
         "if run loadfdt; then " \
             "bootm ${loadaddr} - ${fdtaddr}; " \
         "else " \
             "echo ERROR: Failed to load ${target}.dtb; " \
-        "fi; " \
+        "fi;\0" \
     "mmcboot=mmc dev ${mmcdev}; " \
         "if mmc rescan; then " \
             "echo SD/MMC found on device ${mmcdev};" \
