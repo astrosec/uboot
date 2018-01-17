@@ -102,13 +102,13 @@
     "bootfile=kernel\0" \
     "console=ttyS0,115200\0" \
     "optargs=\0" \
-    "loadimage=fatload mmc ${bootpart} ${loadaddr} /${bootfile}\0" \
-    "loadfdt=fatload mmc ${bootpart} ${fdtaddr} /${board}.dtb\0" \
+    "loadimage=fatload mmc ${mmcdev}:1 ${loadaddr} /${bootfile}\0" \
+    "loadfdt=fatload mmc ${mmcdev}:1 ${fdtaddr} /${board}.dtb\0" \
     "mmcloados=run args_mmc; " \
         "if run loadfdt; then " \
             "bootm ${loadaddr} - ${fdtaddr}; " \
         "else " \
-            "echo ERROR: Failed to load ${target}.dtb; " \
+            "echo ERROR: Failed to load ${board}.dtb; " \
         "fi;\0" \
     "mmcboot=mmc dev ${mmcdev}; " \
         "if mmc rescan; then " \
