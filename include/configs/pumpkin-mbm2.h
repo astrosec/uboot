@@ -17,10 +17,6 @@
 *
 * Configuration file for the Pumpkin Motherboard Module 2, using a Beaglebone Black
 * as the OBC.
-*
-* Note: By default, KubOS Linux will be booted from the eMMC storage. This is defined
-* to the system as the SECOND MMC device. The microSD card is defined as the FIRST MMC
-* device.
 */
 
 #pragma once
@@ -81,7 +77,6 @@
 #define DFU_ALT_INFO_NOR ""
 #endif /* CONFIG_UPDATE_KUBOS */
 
-/*TODO: check for boot_dev */
 #define CONFIG_BOOTCOMMAND \
     "run distro_bootcmd"
 
