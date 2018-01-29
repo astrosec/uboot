@@ -186,13 +186,13 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		}
 
 		/*
-		 * Kubos: Updating to also check for the TXEMPTY bit, which indicates that the
-		 * transfer shift register is also empty. This prevents a timing issue between
+		 * Kubos: Updating to check for the TXEMPTY bit (vs TDRE), which indicates that the
+		 * transfer data *and shift* registers are empty. This prevents a timing issue between
 		 * writing and reading that can occur.
 		 * If this driver is ever updated to allow the SPI bus to operate in slave mode,
 		 * this logic will need to be changed since TXEMPTY isn't used in that mode.
 		 */
-		if (len_tx < len && (status & ATMEL_SPI_SR_TDRE) && (status & ATMEL_SPI_SR_TXEMPTY)) {
+		if (len_tx < len && (status & ATMEL_SPI_SR_TXEMPTY)) {
 			if (txp)
 				value = *txp++;
 			else
