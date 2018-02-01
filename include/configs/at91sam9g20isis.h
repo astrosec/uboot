@@ -79,7 +79,7 @@
 #define	CONFIG_RED_LED		AT91_PIN_PC12	/* this is the power led */
 #define	CONFIG_GREEN_LED	AT91_PIN_PC13	/* this is the user led */
 #define CONFIG_YELLOW_LED   AT91_PIN_PC14
-#define CONFIG_BLUE_LED     AT91_PIN_PC15   /* Unused */
+#define CONFIG_BLUE_LED	 AT91_PIN_PC15   /* Unused */
 
 /* SPI */
 #define CONFIG_ATMEL_SPI
@@ -102,7 +102,7 @@
 	"rootfs part 0 6\0"
 
 #define DFU_ALT_INFO_NOR \
-	"dfu_alt_info_nor="		    \
+	"dfu_alt_info_nor="			\
 	"uboot raw 0xA000 0x56000;" \
 	"dtb raw 0x70000 0x10000" \
 	"\0"
@@ -166,11 +166,11 @@
 #define CONFIG_EXT4_WRITE
 
 /* u-boot env in sd/mmc card */
-#define CONFIG_ENV_IS_IN_EXT4    1
-#define EXT4_ENV_INTERFACE       "mmc"
+#define CONFIG_ENV_IS_IN_EXT4	1
+#define EXT4_ENV_INTERFACE	   "mmc"
 #define EXT4_ENV_DEVICE_AND_PART "0:1"
-#define EXT4_ENV_FILE            "/system/etc/uboot.env"
-#define CONFIG_ENV_SIZE         1 * 1024 //Assume sector size of 1024
+#define EXT4_ENV_FILE			"/system/etc/uboot.env"
+#define CONFIG_ENV_SIZE		 1 * 1024 //Assume sector size of 1024
 #endif
 
 /* USB */
@@ -190,17 +190,47 @@
 #ifdef CONFIG_SYS_USE_NORFLASH
 #define SMALL_SECT_SIZE   0x1000
 #define LARGE_SECT_SIZE   0x10000
-/* (bootstrap + u-boot + dtb (+ altOS) in flash) + (env + linux in mmc) */
-/* Copy .dtb file (NORFLASH @ 0x70000, size = 0x10000) and kernel (SD card, partition 5) into SDRAM, then boot them */
-#define CONFIG_BOOTCOMMAND	"cp.b 0x10070000 0x21800000 0x10000; " \
-				"fatload mmc 0:5 0x2187FF58 kernel; " \
-				"bootm 0x2187FF58 - 0x21800000"
+
+#ifdef CONFIG_SD_SWITCH
+#define CONFIG_BOOTCOMMAND \
+	"if mmc rescan; then " \
+		"run mmc_boot; " \
+	"else " \
+		"mmc slot 0; " \
+		"if mmc rescan; then " \
+			"run mmc_boot; " \
+		"else " \
+			"mmc slot 1; " \
+			"if mmc rescan; then " \
+				"run mmc_boot; " \
+			"else " \
+				"echo ERROR: Failed to boot. Unable to communicate with SD card; " \
+			"fi; " \
+		"fi; " \
+	"fi;"
+#else
+#define CONFIG_BOOTCOMMAND	\
+	"if mmc rescan; then " \
+		"run mmc_boot; " \
+	"else " \
+		"echo ERROR: Failed to boot. Unable to communicate with SD card; " \
+	"fi;"
+#endif
+
 /* Define the initial console connection and rootfs location */
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 "				\
 	"root=/dev/mmcblk0p6 rootwait"
 
+/* (bootstrap + u-boot + dtb (+ altOS) in flash) + (env + linux in mmc) */
+/* Copy .dtb file (NORFLASH @ 0x70000, size = 0x10000) and kernel (SD card, partition 5) into SDRAM, then boot them */
+#define MMC_BOOT \
+	"mmc_boot=cp.b 0x10070000 0x21800000 0x10000; " \
+		"fatload mmc 0:5 0x2187FF58 kernel; " \
+		"bootm 0x2187FF58 - 0x21800000\0"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	MMC_BOOT \
 	KUBOS_UPDATE_ARGS
 
 #define CONFIG_SYS_FLASH_CFI			1
