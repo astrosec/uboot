@@ -80,7 +80,7 @@
     "run distro_bootcmd"
 
 #define BOOT_TARGET_DEVICES(func) \
-    func(LEGACY_MMC, legacy_mmc, "${boot_dev}")
+    func(LEGACY_MMC, legacy_mmc, "${boot_dev}") \
     func(LEGACY_MMC, legacy_mmc, 0) \
     func(LEGACY_MMC, legacy_mmc, 1) \
 
