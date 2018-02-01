@@ -17,10 +17,6 @@
 *
 * Configuration file for the Pumpkin Motherboard Module 2, using a Beaglebone Black
 * as the OBC.
-*
-* Note: By default, KubOS Linux will be booted from the eMMC storage. This is defined
-* to the system as the SECOND MMC device. The microSD card is defined as the FIRST MMC
-* device.
 */
 
 #pragma once
@@ -31,6 +27,7 @@
 /* Undo things we don't want to include from the base Beaglebone Black configuration */
 #undef CONFIG_SYS_LDSCRIPT /* For NOR flash, which we (and the BBB) don't support */
 #undef CONFIG_BOOTCOMMAND
+#undef BOOT_TARGET_DEVICES
 #undef CONFIG_EXTRA_ENV_SETTINGS
 #undef CONFIG_ENV_IS_IN_MMC
 #undef CONFIG_ENV_IS_IN_FAT
@@ -81,15 +78,40 @@
 #endif /* CONFIG_UPDATE_KUBOS */
 
 #define CONFIG_BOOTCOMMAND \
-	"setenv bootargs console=ttyS0,115200 root=/dev/mmcblk${boot_dev}p2 ext4 rootwait; " \
-	"fatload mmc ${boot_dev}:1 ${fdtaddr} /pumpkin-mbm2.dtb; " \
-	"fatload mmc ${boot_dev}:1 ${loadaddr} /kernel; " \
-	"bootm ${loadaddr} - ${fdtaddr}"
+    "run distro_bootcmd"
+
+#define BOOT_TARGET_DEVICES(func) \
+    func(LEGACY_MMC, legacy_mmc, 0) \
+    func(LEGACY_MMC, legacy_mmc, 1) \
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"boot_dev=1\0" \
-	DEFAULT_LINUX_BOOT_ENV \
+    DEFAULT_LINUX_BOOT_ENV \
+    "mmcdev=0\0" \
+    "mmcrootfstype=ext4 rootwait\0" \
+    "finduuid=part uuid mmc ${bootpart} uuid\0" \
+    "args_mmc=run finduuid;setenv bootargs console=${console} " \
+        "${optargs} " \
+        "root=PARTUUID=${uuid} ro " \
+        "rootfstype=${mmcrootfstype}\0" \
+    "bootfile=kernel\0" \
+    "console=ttyS0,115200\0" \
+    "optargs=\0" \
+    "loadimage=fatload mmc ${mmcdev}:1 ${loadaddr} /${bootfile}\0" \
+    "loadfdt=fatload mmc ${mmcdev}:1 ${fdtaddr} /${board}.dtb\0" \
+    "mmcloados=run args_mmc; " \
+        "if run loadfdt; then " \
+            "bootm ${loadaddr} - ${fdtaddr}; " \
+        "else " \
+            "echo ERROR: Failed to load ${board}.dtb; " \
+        "fi;\0" \
+    "mmcboot=mmc dev ${mmcdev}; " \
+        "if mmc rescan; then " \
+            "echo SD/MMC found on device ${mmcdev};" \
+            "if run loadimage; then " \
+                "run mmcloados;" \
+            "fi;" \
+        "fi;\0" \
 	NETARGS \
 	BOOTENV \
 	KUBOS_UPDATE_ARGS
