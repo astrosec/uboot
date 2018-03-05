@@ -81,12 +81,14 @@
     "run distro_bootcmd"
 
 #define BOOT_TARGET_DEVICES(func) \
+    func(LEGACY_MMC, legacy_mmc, "${boot_dev}") \
     func(LEGACY_MMC, legacy_mmc, 0) \
     func(LEGACY_MMC, legacy_mmc, 1) \
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
     DEFAULT_LINUX_BOOT_ENV \
+    "boot_dev=0\0" \
     "mmcdev=0\0" \
     "mmcrootfstype=ext4 rootwait\0" \
     "finduuid=part uuid mmc ${bootpart} uuid\0" \
