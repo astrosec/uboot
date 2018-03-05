@@ -87,7 +87,7 @@
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
     DEFAULT_LINUX_BOOT_ENV \
-    "bootdev=0\0" \
+    "boot_dev=0\0" \
     "mmcdev=0\0" \
     "mmcrootfstype=ext4 rootwait\0" \
     "finduuid=part uuid mmc ${bootpart} uuid\0" \
