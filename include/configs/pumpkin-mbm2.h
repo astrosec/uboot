@@ -48,7 +48,7 @@
 #define CONFIG_ENV_IS_IN_EXT4    1
 #define EXT4_ENV_INTERFACE       "mmc"
 #define EXT4_ENV_DEVICE_AND_PART "1:3"
-#define EXT4_ENV_FILE            "/system/etc/uboot.env"
+#define EXT4_ENV_FILE            "/uboot.env"
 #define CONFIG_ENV_SIZE         10 * 1024 /* Assume sector size of 1024 */
 #endif
 #endif /* CONFIG_SPL_BUILD */
