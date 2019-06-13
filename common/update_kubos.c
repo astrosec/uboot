@@ -69,8 +69,6 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
     // Get the file header
     int ret = ext4_read_file(file, load_addr, 0, sizeof(struct fdt_header), &actlen);
 
-    printf("ext4_read_file RC: %d. Size: %lld\n", ret, actlen);
-
     if (ret < 0)
     {
         printf("ERROR: Couldn't read %s file - %d\n", file, ret);
@@ -83,28 +81,27 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
     ret = ext4_read_file(file, load_addr, 0, fit_size, &actlen);
 
     void * fit = load_addr;
-    // The data section will be after the FIT file, but aligned on a 32-bit
+    // The data section will be after the FIT file, but aligned on a 4-byte
     // boundary
     int data_offset = (fit_size + 3) & ~3;
     void * data_addr = load_addr + data_offset;
 
+    int max_size = gd->start_addr_sp - data_addr - CONFIG_SYS_DFU_DATA_BUF_SIZE;
+    printf("Max file size: %d\n", max_size);
+
     // Validate the file
     if (!fit_check_format(fit)) {
-        printf("Bad FIT format of the update file, aborting "
-                            "auto-update\n");
+        printf("ERROR: Bad FIT format of the update file, aborting "
+        		"auto-update\n");
         return 1;
     }
 
     // Process updates
     noffset = fdt_path_offset(fit, FIT_IMAGES_PATH);
-    printf("Images offset: %d\n", noffset);
-
     ndepth = 0;
 
-    printf("Offset: %d. Depth: %d\n", noffset, ndepth);
     while (noffset >= 0 && ndepth >= 0) {
         noffset = fdt_next_node(fit, noffset, &ndepth);
-        printf("Next offset: %d, Next depth: %d\n", noffset, ndepth);
 
         if (ndepth != 1) {
             continue;
@@ -126,13 +123,18 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
             continue;
         }
 
-        printf("Load addr: %p, Data offset: %d, Update offset: %d, Data size: %d\n",
+        debug("Load addr: %p, Data offset: %d, Update offset: %d, Data size: %d\n",
                 data_addr, data_offset, update_offset, update_size);
+
+        if (update_size > max_size) {
+        	printf("ERROR: Update file too large. %d > %d\n", update_size, max_size);
+        	ret = 1;
+        	continue;
+        }
 
         // And load it into RAM
         ret = ext4_read_file(file, data_addr, data_offset + update_offset,
                 update_size, &actlen);
-        printf("ext4_read_file RC: %d. Size: %lld\n", ret, actlen);
 
         if (ret < 0)
         {
@@ -140,19 +142,21 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
             return -1;
         }
 
-//        if (!fit_image_verify(fit, noffset)) {
-//            printf("Error: invalid update hash, aborting\n");
-//            ret = 1;
-//            continue;
-//        }
+        if (!fit_image_verify_with_data(fit, noffset, data_addr, update_size)) {
+            printf("ERROR: Invalid update hash, aborting\n");
+            ret = 1;
+            continue;
+        }
 
         if (fit_image_check_type(fit, noffset,
                         IH_TYPE_FIRMWARE)) {
-            printf("Calling dfu_tftp_write\n");
             ret = dfu_tftp_write(fit_image_name, (unsigned int) data_addr,
                          update_size, "mmc", dev_num);
-            if (ret)
+            if (ret) {
                 return ret;
+            }
+        } else {
+        	printf("ERROR: Invalid image type\n");
         }
     }
 
