@@ -22,6 +22,7 @@
 #include <mmc.h>
 #include <kubos.h>
 #include <dfu.h>
+DECLARE_GLOBAL_DATA_PTR;
 
 #define UPDATE_COUNT_ENVAR "kubos_updatecount"
 #define DEV_ENVAR          "kubos_updatedev"
@@ -86,8 +87,12 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
     int data_offset = (fit_size + 3) & ~3;
     void * data_addr = load_addr + data_offset;
 
-    int max_size = gd->start_addr_sp - data_addr - CONFIG_SYS_DFU_DATA_BUF_SIZE;
-    printf("Max file size: %d\n", max_size);
+    // U-Boot reserves memory for itself at the end of RAM, while we're loading
+    // the update file at the beginning.
+    // So the largest update entity we could possibly allow is the amount of
+    // space between the two, minus the room needed for the DFU chunk buffer,
+    // minus a little bit of wiggle room (1K)
+    int max_size = gd->start_addr_sp - (unsigned long) data_addr - CONFIG_SYS_DFU_DATA_BUF_SIZE - SZ_1K;
 
     // Validate the file
     if (!fit_check_format(fit)) {
@@ -108,7 +113,7 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
         }
 
         fit_image_name = (char *)fit_get_name(fit, noffset, NULL);
-        printf("Processing update '%s' :\n", fit_image_name);
+        printf("Processing update '%s' :", fit_image_name);
 
         // Get the update entity's size and offset
         int update_offset, update_size;
@@ -147,6 +152,8 @@ int update_mmc(char * file, void * load_addr, char * dev_num)
             ret = 1;
             continue;
         }
+
+        printf("\n");
 
         if (fit_image_check_type(fit, noffset,
                         IH_TYPE_FIRMWARE)) {
