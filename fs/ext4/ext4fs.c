@@ -66,8 +66,8 @@ int ext4fs_read_file(struct ext2fs_node *node, loff_t pos,
 	short status;
 
 	/* Adjust len so it we can't read past the end of the file. */
-	if (len > filesize)
-		len = filesize;
+	if (len + pos > filesize)
+	        len = (filesize - pos);
 
 	blockcnt = lldiv(((len + pos) + blocksize - 1), blocksize);
 
@@ -198,12 +198,12 @@ int ext4fs_size(const char *filename, loff_t *size)
 	return ext4fs_open(filename, size);
 }
 
-int ext4fs_read(char *buf, loff_t len, loff_t *actread)
+int ext4fs_read(char *buf, loff_t offset, loff_t len, loff_t *actread)
 {
 	if (ext4fs_root == NULL || ext4fs_file == NULL)
-		return 0;
+		return -1;
 
-	return ext4fs_read_file(ext4fs_file, 0, len, buf, actread);
+	return ext4fs_read_file(ext4fs_file, offset, len, buf, actread);
 }
 
 int ext4fs_probe(struct blk_desc *fs_dev_desc,
@@ -225,11 +225,6 @@ int ext4_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 	loff_t file_len;
 	int ret;
 
-	if (offset != 0) {
-		printf("** Cannot support non-zero offset **\n");
-		return -1;
-	}
-
 	ret = ext4fs_open(filename, &file_len);
 	if (ret < 0) {
 		printf("** File not found %s **\n", filename);
@@ -239,7 +234,7 @@ int ext4_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 	if (len == 0)
 		len = file_len;
 
-	return ext4fs_read(buf, len, len_read);
+	return ext4fs_read(buf, offset, len, len_read);
 }
 
 int ext4fs_uuid(char *uuid_str)
