@@ -68,7 +68,7 @@
 	"kernel fat 1 1;" 		\
 	"rootfs part 1 2;" \
 	"uboot fat 1 1;" \
-	"dtb fat 1 1" \
+	"pumpkin-mbm2.dtb fat 1 1" \
 	"\0"
 
 #define DFU_ALT_INFO_NOR ""
