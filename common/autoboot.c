@@ -359,6 +359,18 @@ void autoboot_command(const char *s)
 #if defined(CONFIG_AUTOBOOT_KEYED) && !defined(CONFIG_AUTOBOOT_KEYED_CTRLC)
 		disable_ctrlc(prev);	/* restore Control C checking */
 #endif
+
+		/*
+		 * We failed to run commands for some reason.
+		 * There are two conceivable reasons:
+		 * - Someone coded bad boot commands
+		 * - The envar section of RAM got hit with an SEU
+		 *
+		 * We want to try to handle the latter by just doing a system reset so
+		 * that RAM gets reloaded
+		 */
+
+		do_reset(cmdtp, flag, argc, argv);
 	}
 
 #ifdef CONFIG_MENUKEY

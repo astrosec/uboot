@@ -44,7 +44,7 @@
 #define KUBOS_UPDATE_FILE  "kubos_updatefile"
 
 #define KUBOS_UPDATE_ARGS \
-	"altbootcmd=setenv recovery_available 0; setenv bootcmd; saveenv\0" \
+	"altbootcmd=run bootcmd\0" \
 	"recovery_available=1\0" \
     "bootlimit=3\0" \
 	KUBOS_CURR_VERSION "=" KUBOS_BASE "\0" \

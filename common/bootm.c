@@ -612,11 +612,21 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 #ifdef CONFIG_UPDATE_KUBOS
 	/* Check the boot counter. If it's too high, we need to try and recover */
-	if(bootcount_load() > 2)
+	unsigned long bootcount = bootcount_load();
+	if(bootcount > 2)
 	{
-		ret = BOOTM_ERR_OTHER;
-		printf("ERROR: Failed to boot too many times, triggering recovery\n");
-		goto err;
+		/*
+		 * If the bootlimit has been reached, then we're trying to execute the
+		 * alternate boot logic. It's entirely possible that we're still using
+		 * a `bootm` command to load an alternate OS, so don't automatically
+		 * fall into the recovery logic
+		 */
+		unsigned long bootlimit = getenv_ulong("bootlimit", 10, 0);
+		if(bootcount <= bootlimit) {
+			ret = BOOTM_ERR_OTHER;
+			printf("ERROR: Failed to boot too many times, triggering recovery\n");
+			goto err;
+		}
 	}
 #endif
 
@@ -789,10 +799,7 @@ err:
 	 * can track the failure and run the altbootcmd instead, if it's available.
 	 */
 	printf("Boot failed. No rollback could be completed\n");
-	if (getenv_yesno("recovery_available"))
-	{
-		do_reset(cmdtp, flag, argc, argv);
-	}
+	do_reset(cmdtp, flag, argc, argv);
 
 #endif
 
