@@ -370,7 +370,7 @@ void autoboot_command(const char *s)
 		 * that RAM gets reloaded
 		 */
 
-		do_reset(cmdtp, flag, argc, argv);
+		do_reset(NULL, 0, 0, NULL);
 	}
 
 #ifdef CONFIG_MENUKEY
