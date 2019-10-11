@@ -3,6 +3,7 @@
  * Copyright (C) 2013 Xilinx, Inc. All rights reserved.
  *
  * SPDX-License-Identifier:	GPL-2.0+
+ * 10/11/2019 FBP Added whitespace to kickoff source scan
  */
 #include <common.h>
 #include <errno.h>
