@@ -255,7 +255,7 @@
  * Size of malloc() pool
  * Update: This size was increased to accommodate the DFU buffers. I'm not sure of the exact
  * equation that would determine the optimum size.  Through trial and error I found that it
- * should be more than 5MB, but less than 20MB.
+ * should be more than 6MB, but less than 20MB.
  */
-#define CONFIG_SYS_MALLOC_LEN 	 	10 * SZ_1M
+#define CONFIG_SYS_MALLOC_LEN 	 	8 * SZ_1M
 #endif
